@@ -6,8 +6,7 @@ import {
   Circle,
   MarkerClusterer,
 } from "@react-google-maps/api";
-import Places from "./places";
-import Itinerary from "./itinerary";
+import TripPlanner from "./tripPlanner";
 
 export default function Map() {
   // const [office, setOffice] = useState<google.maps.LatLngLiteral>();
@@ -73,18 +72,11 @@ export default function Map() {
     </div>
     <div className="container">
       <div className="controls">
-        <h1>Commute?</h1>
-        <Places
-          setSearchResult={(position) => {
+        <TripPlanner setSearchResult={(position) => {
             setSearchResult(position);
-            setPlaces(prevPlaces => [...prevPlaces, position])
             console.log(position);
-            mapRef.current?.panTo(position);
-          }}
-        />
-        {!searchResult && <p>Enter the address of your office.</p>}
-        {/* {searchResult && <Itinerary></>} */}
-        {directions && <Itinerary leg={directions.routes[0].legs[0]} />}
+            // mapRef.current?.panTo(position);
+          }}/>
       </div>
       <div className="map">
         <GoogleMap
