@@ -7,10 +7,12 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 import Places from "./places";
-import Distance from "./distance";
+import Itinerary from "./itinerary";
 
 export default function Map() {
-  const [office, setOffice] = useState<google.maps.LatLngLiteral>();
+  // const [office, setOffice] = useState<google.maps.LatLngLiteral>();
+  const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
+  const [places, setPlaces] = useState<google.maps.LatLngLiteral[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
   const mapRef = useRef<GoogleMap>();
   const center = useMemo<google.maps.LatLngLiteral>(
@@ -28,14 +30,24 @@ export default function Map() {
   const onLoad = useCallback((map) => (mapRef.current = map), []);
   const houses = useMemo(() => generateHouses(center), [center]);
 
-  const fetchDirections = (house: google.maps.LatLngLiteral) => {
-    if (!office) return;
+  const fetchDirections = (houses: google.maps.LatLngLiteral[]) => {
+    console.log("The start: " + houses[0].lat + ", " + houses[0].lng);
+    console.log("The destination: " + houses[houses.length-1].lat + ", " + houses[houses.length-1].lng);
+    if (!searchResult) return;
+
+    //must convert into DirectionsWaypoints
+    const inBetweenPlaces = houses.slice(1, houses.length-1).map((house) => {
+      return {
+          location: new google.maps.LatLng(house.lat, house.lng),
+      };
+    });
 
     const service = new google.maps.DirectionsService();
     service.route(
       {
-        origin: house,
-        destination: office,
+        origin: houses[0],
+        destination: houses[houses.length-1],
+        waypoints: inBetweenPlaces,
         travelMode: google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
@@ -47,9 +59,9 @@ export default function Map() {
   };
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>TrailTrekker</h1>
+    <>
+    <div className="header">
+        <h1 className="header-text">TrailTrekker</h1>
         {/* <Places
           setOffice={(position) => {
             setOffice(position);
@@ -58,17 +70,21 @@ export default function Map() {
         />
         {!office && <p>Enter the address of your office.</p>}
         {directions && <Distance leg={directions.routes[0].legs[0]} />} */}
-      </div>
+    </div>
+    <div className="container">
       <div className="controls">
         <h1>Commute?</h1>
         <Places
-          setOffice={(position) => {
-            setOffice(position);
+          setSearchResult={(position) => {
+            setSearchResult(position);
+            setPlaces(prevPlaces => [...prevPlaces, position])
+            console.log(position);
             mapRef.current?.panTo(position);
           }}
         />
-        {!office && <p>Enter the address of your office.</p>}
-        {directions && <Distance leg={directions.routes[0].legs[0]} />}
+        {!searchResult && <p>Enter the address of your office.</p>}
+        {/* {searchResult && <Itinerary></>} */}
+        {directions && <Itinerary leg={directions.routes[0].legs[0]} />}
       </div>
       <div className="map">
         <GoogleMap
@@ -91,10 +107,10 @@ export default function Map() {
             />
           )}
 
-          {office && (
+          {searchResult && (
             <>
               <Marker
-                position={office}
+                position={searchResult}
                 icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
               />
 
@@ -106,21 +122,22 @@ export default function Map() {
                       position={house}
                       clusterer={clusterer}
                       onClick={() => {
-                        fetchDirections(house);
+                        fetchDirections(houses);
                       }}
                     />
                   ))
                 }
               </MarkerClusterer>
 
-              <Circle center={office} radius={15000} options={closeOptions} />
-              <Circle center={office} radius={30000} options={middleOptions} />
-              <Circle center={office} radius={45000} options={farOptions} />
+              <Circle center={searchResult} radius={15000} options={closeOptions} />
+              <Circle center={searchResult} radius={30000} options={middleOptions} />
+              <Circle center={searchResult} radius={45000} options={farOptions} />
             </>
           )}
         </GoogleMap>
       </div>
     </div>
+    </>
   );
 }
 
@@ -156,7 +173,7 @@ const farOptions = {
 
 const generateHouses = (position: google.maps.LatLngLiteral) => {
   const _houses: Array<google.maps.LatLngLiteral> = [];
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 10; i++) {
     const direction = Math.random() < 0.5 ? -2 : 2;
     _houses.push({
       lat: position.lat + Math.random() / direction,

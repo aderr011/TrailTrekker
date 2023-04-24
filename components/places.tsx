@@ -12,10 +12,10 @@ import usePlacesAutocomplete, {
   import "@reach/combobox/styles.css";
   
   type PlacesProps = {
-    setOffice: (position: google.maps.LatLngLiteral) => void;
+    setSearchResult: (position: google.maps.LatLngLiteral) => void;
   };
   
-  export default function Places({ setOffice }: PlacesProps) {
+  export default function Places({ setSearchResult }: PlacesProps) {
     const {
       ready,
       value,
@@ -30,7 +30,8 @@ import usePlacesAutocomplete, {
   
       const results = await getGeocode({ address: val });
       const { lat, lng } = await getLatLng(results[0]);
-      setOffice({ lat, lng });
+      //Add this lat lng set to a list that we can then display below the search bar
+      setSearchResult({ lat, lng });
     };
   
     return (
