@@ -16,7 +16,7 @@ import usePlacesAutocomplete, {
   
   type SearchProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-    setPlaces : ((list: Place[]) => void);
+    setPlaces : (list: Place[]) => void;
     places : (Place[]);
     searchResult: (google.maps.LatLngLiteral | undefined);
     setDirections: (result: google.maps.DirectionsResult | undefined) => void;
@@ -34,19 +34,23 @@ import usePlacesAutocomplete, {
 
     const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
     useEffect(() => {
+      console.log("HERE IN THE USEEFFECT")
+      console.log(places);
       const placesNoName = places.map((place) => ({
         lat: place.lat,
         lng: place.lng,
       }));
       setPlacesLatLng(placesNoName);
+      fetchDirections(placesNoName);
     }, [places]);
 
 
     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
-      console.log("The start: " + placesLocs[0].lat + ", " + placesLocs[0].lng);
-      console.log("The destination: " + placesLocs[placesLocs.length-1].lat + ", " + placesLocs[placesLocs.length-1].lng);
-      if (!searchResult) return;
-  
+      if (placesLocs.length == 0) {
+        console.log("something wrong");
+        return;
+      }
+
       //must convert into DirectionsWaypoints
       const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
         return {
@@ -64,12 +68,13 @@ import usePlacesAutocomplete, {
         },
         (result, status) => {
           if (status === "OK" && result) {
+            console.log("We set the directions with: ");
+            console.log(placesLocs);
             setDirections(result);
           }
         }
       );
     };
-
   
     const handleSelect = async (val: string) => {
       setValue(val, false);
@@ -78,10 +83,13 @@ import usePlacesAutocomplete, {
       const results = await getGeocode({ address: val });
       const { lat, lng } = await getLatLng(results[0]);
       myPlace = {name: val, lat:lat, lng:lng};
-      places.push(myPlace);
-      setPlaces(places);
+      //The below set does not seem to be setting the places array because it 
+      //does not call the useEffect. But when you actually go into the list and
+      //change the order of the lists then you actually see the places change
+      setPlaces([...places, myPlace]);
+
       setSearchResult({ lat, lng });
-      fetchDirections(placesLatLng);
+      
     };
   
     return (

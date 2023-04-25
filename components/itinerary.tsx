@@ -11,43 +11,6 @@ type ItineraryProps = {
 
 export default function Itinerary({ places, setPlaces }: ItineraryProps) {
 
-  if (places[0]){
-    console.log("Recieving here: " + places[0].name);
-  }
-
-  // const [listWithIds, setListWithIds] = useState<Place[]>([
-  //   {
-  //     id: "1", 
-  //     lat: 40,
-  //     lng: 45,
-  //   },
-  //   {
-  //     id: "2", 
-  //     lat: 100,
-  //     lng: 45,
-  //   },
-  //   {
-  //     id: "3", 
-  //     lat: 5,
-  //     lng: 45,
-  //   },
-  //   {
-  //     id: "4", 
-  //     lat: 0,
-  //     lng: 100,
-  //   },
-  //   {
-  //     id: "5", 
-  //     lat: 45,
-  //     lng: 55,
-  //   },
-  //   {
-  //     id: "6", 
-  //     lat: 50,
-  //     lng: -100,
-  //   }
-  // ]);
-
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
 
@@ -58,14 +21,10 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
     setPlaces(items);
   }
 
-
-  
-  
-
   return (
     <div>
       <header>
-        <h1>Stops</h1>
+        <h2 className="itinerary-header">Itinerary</h2>
         <DragDropContext onDragEnd={handleOnDragEnd}>
           <Droppable droppableId="characters">
             {(provided) => (
@@ -76,7 +35,7 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
                       {(provided) => (
                         <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
                           <div className="characters-thumb">
-                            <h3>name: {name} lat: {lat} long: {lng}</h3>
+                            <h4>name: {name}</h4>
                           </div>
                         </li>
                       )}

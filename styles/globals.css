@@ -23,9 +23,21 @@ a {
 .header-text {
   position:absolute;
   top: -2.5vh;
-  left: 3.5%;
+  left: 45%;
   color: #fff;
 
+}
+.planner-text {
+  position:relative;
+  top: -1vh;
+  left: 27%;
+  color: #fff;
+}
+.itinerary-header {
+  position:relative;
+  /* top: -1vh; */
+  left: 35%;
+  color: #fff;
 }
 
 .header {

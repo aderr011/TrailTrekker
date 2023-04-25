@@ -65,9 +65,10 @@ export default function Map() {
     <div className="container">
       <div className="controls">
         <TripPlanner setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
-            setSearchResult(position);
-            console.log(position);
-            // mapRef.current?.panTo(position);
+            setSearchResult(position);    
+            if (position) {
+              mapRef.current?.panTo(position);
+            }        
           }}/>
       </div>
       <div className="map">

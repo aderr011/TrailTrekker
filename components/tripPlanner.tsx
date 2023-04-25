@@ -46,7 +46,8 @@ import usePlacesAutocomplete, {
   
     return (
       <>
-        <h1>Trip Planner</h1>
+        <h1 className="planner-text">Trip Planner</h1>
+        {/* <h1 className="planner-text">Trip Planner</h1> */}
         <Search setSearchResult={setSearchResult} places={places} setPlaces={setPlaces} searchResult={searchResult} setDirections={setDirections}/>
         {places && <Itinerary places={places} setPlaces={setPlaces} />}
         </>
