@@ -61,18 +61,10 @@ export default function Map() {
     <>
     <div className="header">
         <h1 className="header-text">TrailTrekker</h1>
-        {/* <Places
-          setOffice={(position) => {
-            setOffice(position);
-            mapRef.current?.panTo(position);
-          }}
-        />
-        {!office && <p>Enter the address of your office.</p>}
-        {directions && <Distance leg={directions.routes[0].legs[0]} />} */}
     </div>
     <div className="container">
       <div className="controls">
-        <TripPlanner setSearchResult={(position) => {
+        <TripPlanner setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
             setSearchResult(position);
             console.log(position);
             // mapRef.current?.panTo(position);
@@ -105,25 +97,6 @@ export default function Map() {
                 position={searchResult}
                 icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
               />
-
-              <MarkerClusterer>
-                {(clusterer) =>
-                  houses.map((house) => (
-                    <Marker
-                      key={house.lat}
-                      position={house}
-                      clusterer={clusterer}
-                      onClick={() => {
-                        fetchDirections(houses);
-                      }}
-                    />
-                  ))
-                }
-              </MarkerClusterer>
-
-              <Circle center={searchResult} radius={15000} options={closeOptions} />
-              <Circle center={searchResult} radius={30000} options={middleOptions} />
-              <Circle center={searchResult} radius={45000} options={farOptions} />
             </>
           )}
         </GoogleMap>

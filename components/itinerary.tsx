@@ -47,17 +47,6 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
   //     lng: -100,
   //   }
   // ]);
-  
-  // useEffect(() => {
-  //   const newListWithIds = latLngList.map((latLng, index) => {
-  //     return {
-  //       id: `${index}`,
-  //       lat: latLng.lat,
-  //       lng: latLng.lng,
-  //     };
-  //   });
-  //   setListWithIds(newListWithIds);
-  // }, [latLngList]);
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
@@ -68,6 +57,9 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
 
     setPlaces(items);
   }
+
+
+  
   
 
   return (

@@ -19,12 +19,12 @@ import usePlacesAutocomplete, {
 
   
   type TripPlannerProps = {
-    setSearchResult: (position: google.maps.LatLngLiteral) => void;
-    // searchResult: (google.maps.LatLngLiteral);
-
+    setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
+    searchResult: (google.maps.LatLngLiteral | undefined);
+    setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   };
   
-  export default function TripPlanner({ setSearchResult }: TripPlannerProps) {
+  export default function TripPlanner({ setSearchResult, searchResult, setDirections }: TripPlannerProps) {
     
 
     const usePlaces = (): [Place[], (list: Place[]) => void] => {
@@ -47,8 +47,7 @@ import usePlacesAutocomplete, {
     return (
       <>
         <h1>Trip Planner</h1>
-        <Search setSearchResult={setSearchResult} places={places} setPlaces={setPlaces}/>
-        {/* {searchResult && <Itinerary></>} */}
+        <Search setSearchResult={setSearchResult} places={places} setPlaces={setPlaces} searchResult={searchResult} setDirections={setDirections}/>
         {places && <Itinerary places={places} setPlaces={setPlaces} />}
         </>
     );

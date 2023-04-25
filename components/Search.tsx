@@ -15,11 +15,11 @@ import usePlacesAutocomplete, {
 
   
   type SearchProps = {
-    setSearchResult: (position: google.maps.LatLngLiteral) => void;
+    setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
     setPlaces : ((list: Place[]) => void);
     places : (Place[]);
-    searchResult: (google.maps.LatLngLiteral);
-    setDirections: (result: google.maps.DirectionsResult) => void;
+    searchResult: (google.maps.LatLngLiteral | undefined);
+    setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   };
   
   export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections }: SearchProps) {
@@ -40,6 +40,7 @@ import usePlacesAutocomplete, {
       }));
       setPlacesLatLng(placesNoName);
     }, [places]);
+
 
     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
       console.log("The start: " + placesLocs[0].lat + ", " + placesLocs[0].lng);
@@ -73,10 +74,9 @@ import usePlacesAutocomplete, {
     const handleSelect = async (val: string) => {
       setValue(val, false);
       clearSuggestions();
-  
+
       const results = await getGeocode({ address: val });
       const { lat, lng } = await getLatLng(results[0]);
-      //Add this lat lng set to a list that we can then display below the search bar
       myPlace = {name: val, lat:lat, lng:lng};
       places.push(myPlace);
       setPlaces(places);
