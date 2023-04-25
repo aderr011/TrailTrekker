@@ -1,0 +1,78 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  height: 95vh;
+}
+
+.header-text {
+  position:absolute;
+  top: -2.5vh;
+  left: 45%;
+  color: #fff;
+
+}
+.planner-text {
+  position:relative;
+  top: -1vh;
+  left: 27%;
+  color: #fff;
+}
+.itinerary-header {
+  position:relative;
+  /* top: -1vh; */
+  left: 35%;
+  color: #fff;
+}
+
+.header {
+  height: 5vh;
+  background: #333c4e;
+  padding-right:100px;
+}
+
+.controls {
+  width: 30%;
+  padding: 1rem;
+  background: #14161a;
+  color: #fff;
+}
+
+.controls input {
+  border: none;
+}
+
+.map-container {
+  width: 100%;
+  height: 95vh;
+}
+
+.map {
+  width: 70%;
+  height: 95vh;
+}
+
+.highlight {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.combobox-input {
+  width: 100%;
+  padding: 0.5rem;
+}
