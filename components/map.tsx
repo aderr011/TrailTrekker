@@ -37,7 +37,7 @@ export default function Map() {
     //must convert into DirectionsWaypoints
     const inBetweenPlaces = houses.slice(1, houses.length-1).map((house) => {
       return {
-          location: new google.maps.LatLng(house.lat, house.lng),
+        location: new google.maps.LatLng(house.lat, house.lng),
       };
     });
 

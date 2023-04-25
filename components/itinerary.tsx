@@ -1,10 +1,6 @@
-const commutesPerYear = 260 * 2;
-const litresPerKM = 10 / 100;
-const gasLitreCost = 1.5;
-const litreCostKM = litresPerKM * gasLitreCost;
-const secondsPerDay = 60 * 60 * 24;
-
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useState, useEffect } from "react";
+
 
 
 type ItineraryProps = {
@@ -14,41 +10,81 @@ type ItineraryProps = {
 
 export default function Itinerary({ latLngList, setLatLngList }: ItineraryProps) {
 
-  function handleOnDragEnd(result) {
+  if (latLngList[0]){
+    console.log("Recieving here: " + latLngList[0].lat);
+  }
+
+  const [listWithIds, setListWithIds] = useState<{ id: string; lat: number; lng: number; }[]>([
+    {
+      id: "1", 
+      lat: 40,
+      lng: 45,
+    },
+    {
+      id: "2", 
+      lat: 100,
+      lng: 45,
+    },
+    {
+      id: "3", 
+      lat: 5,
+      lng: 45,
+    },
+    {
+      id: "4", 
+      lat: 0,
+      lng: 100,
+    },
+    {
+      id: "5", 
+      lat: 45,
+      lng: 55,
+    },
+    {
+      id: "6", 
+      lat: 50,
+      lng: -100,
+    }
+  ]);
+  
+  // useEffect(() => {
+  //   const newListWithIds = latLngList.map((latLng, index) => {
+  //     return {
+  //       id: `${index}`,
+  //       lat: latLng.lat,
+  //       lng: latLng.lng,
+  //     };
+  //   });
+  //   setListWithIds(newListWithIds);
+  // }, [latLngList]);
+
+  function handleOnDragEnd(result: any) {
     if (!result.destination) return;
 
-    const items = Array.from(places);
+    const items = Array.from(listWithIds);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setLatLngList(items);
+    setListWithIds(items);
   }
-
-  var i = 0;
-  const places = latLngList.map((latLng) => {
-    id: i++;
-
-  });
+  
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Final Space Characters</h1>
+    <div>
+      <header>
+        <h1>Stops</h1>
         <DragDropContext onDragEnd={handleOnDragEnd}>
           <Droppable droppableId="characters">
             {(provided) => (
               <ul className="characters" {...provided.droppableProps} ref={provided.innerRef}>
-                {places.map(({lat, lng}, index) => {
+                {listWithIds.map(({id, lat, lng}, index) => {
                   return (
-                    <Draggable key={lat} draggableId={lat} index={index}>
+                    <Draggable key={id} draggableId={id} index={index}>
                       {(provided) => (
                         <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
                           <div className="characters-thumb">
-                            <img src={thumb} alt={`${name} Thumb`} />
+                            <h3>id: {id} lat: {lat} long: {lng}</h3>
                           </div>
-                          <p>
-                            { name }
-                          </p>
                         </li>
                       )}
                     </Draggable>
@@ -60,43 +96,6 @@ export default function Itinerary({ latLngList, setLatLngList }: ItineraryProps)
           </Droppable>
         </DragDropContext>
       </header>
-      <p>
-        Images from <a href="https://final-space.fandom.com/wiki/Final_Space_Wiki">Final Space Wiki</a>
-      </p>
-    </div>
-  );
-
-
-
-
-
-
-
-  if (!leg.distance || !leg.duration) return null;
-
-  const days = Math.floor(
-    (commutesPerYear * leg.duration.value) / secondsPerDay
-  );
-  const cost = Math.floor(
-    (leg.distance.value / 1000) * litreCostKM * commutesPerYear
-  );
-
-  return (
-    <div>
-      <p>
-        This home is <span className="highlight">{leg.distance.text}</span> away
-        from your office. That would take{" "}
-        <span className="highlight">{leg.duration.text}</span> each direction.
-      </p>
-
-      <p>
-        That's <span className="highlight">{days} days</span> in your car each
-        year at a cost of{" "}
-        <span className="highlight">
-          ${new Intl.NumberFormat().format(cost)}
-        </span>
-        .
-      </p>
     </div>
   );
 }

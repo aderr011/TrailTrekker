@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, useRef } from "react";
-
 import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
@@ -13,20 +12,29 @@ import usePlacesAutocomplete, {
   } from "@react-google-maps/api";
 
   import "@reach/combobox/styles.css";
-  import Places from "./places";
+  import Search from "./Search";
   import Itinerary from "./itinerary";
+  import { Place } from "../constants";
 
 
   
-  type PlacesProps = {
+  type TripPlannerProps = {
     setSearchResult: (position: google.maps.LatLngLiteral) => void;
     // searchResult: (google.maps.LatLngLiteral);
 
   };
   
-  export default function TripPlanner({ setSearchResult }: PlacesProps) {
-    const [places, setPlaces] = useState<google.maps.LatLngLiteral[]>([]);
+  export default function TripPlanner({ setSearchResult }: TripPlannerProps) {
+    
 
+    const usePlaces = (): [Place[], (list: Place[]) => void] => {
+      const [list, setList] = useState<Place[]>([]);
+    
+      return [list, setList];
+    };
+    const [places, setPlaces] = usePlaces();
+
+    
     const {
       ready,
       value,
@@ -39,14 +47,15 @@ import usePlacesAutocomplete, {
     return (
       <>
         <h1>Trip Planner</h1>
-        <Places
-          setSearchResult={setSearchResult} setPlaces((position) => {
-            setPlaces((prevPlaces: google.maps.LatLngLiteral[]) => [...prevPlaces, position]);
-            console.log("something");
-          })/>
-        {!searchResult && <p>Enter the address of your office.</p>}
+        {/* <Places setPlaces={(position) => {
+            setSearchResult(position);
+            console.log(position);
+          }}/> */}
+        <Search
+          setSearchResult={setSearchResult} places={places} setPlaces={setPlaces}/>
+        
         {/* {searchResult && <Itinerary></>} */}
-        {directions && <Itinerary leg={directions.routes[0].legs[0]} />}
+        {places && <Itinerary places={places} setPlaces={setPlaces} />}
         </>
     );
   }
