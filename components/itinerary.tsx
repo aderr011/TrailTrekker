@@ -1,51 +1,52 @@
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useState, useEffect } from "react";
+import { Place } from "../constants";
 
 
 
 type ItineraryProps = {
-  latLngList: (google.maps.LatLngLiteral[]);
-  setLatLngList: ((list: google.maps.LatLngLiteral[]) => void);
+  places: (Place[]);
+  setPlaces: ((list: Place[]) => void);
 };
 
-export default function Itinerary({ latLngList, setLatLngList }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces }: ItineraryProps) {
 
-  if (latLngList[0]){
-    console.log("Recieving here: " + latLngList[0].lat);
+  if (places[0]){
+    console.log("Recieving here: " + places[0].name);
   }
 
-  const [listWithIds, setListWithIds] = useState<{ id: string; lat: number; lng: number; }[]>([
-    {
-      id: "1", 
-      lat: 40,
-      lng: 45,
-    },
-    {
-      id: "2", 
-      lat: 100,
-      lng: 45,
-    },
-    {
-      id: "3", 
-      lat: 5,
-      lng: 45,
-    },
-    {
-      id: "4", 
-      lat: 0,
-      lng: 100,
-    },
-    {
-      id: "5", 
-      lat: 45,
-      lng: 55,
-    },
-    {
-      id: "6", 
-      lat: 50,
-      lng: -100,
-    }
-  ]);
+  // const [listWithIds, setListWithIds] = useState<Place[]>([
+  //   {
+  //     id: "1", 
+  //     lat: 40,
+  //     lng: 45,
+  //   },
+  //   {
+  //     id: "2", 
+  //     lat: 100,
+  //     lng: 45,
+  //   },
+  //   {
+  //     id: "3", 
+  //     lat: 5,
+  //     lng: 45,
+  //   },
+  //   {
+  //     id: "4", 
+  //     lat: 0,
+  //     lng: 100,
+  //   },
+  //   {
+  //     id: "5", 
+  //     lat: 45,
+  //     lng: 55,
+  //   },
+  //   {
+  //     id: "6", 
+  //     lat: 50,
+  //     lng: -100,
+  //   }
+  // ]);
   
   // useEffect(() => {
   //   const newListWithIds = latLngList.map((latLng, index) => {
@@ -61,11 +62,11 @@ export default function Itinerary({ latLngList, setLatLngList }: ItineraryProps)
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
 
-    const items = Array.from(listWithIds);
+    const items = Array.from(places);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setListWithIds(items);
+    setPlaces(items);
   }
   
 
@@ -77,13 +78,13 @@ export default function Itinerary({ latLngList, setLatLngList }: ItineraryProps)
           <Droppable droppableId="characters">
             {(provided) => (
               <ul className="characters" {...provided.droppableProps} ref={provided.innerRef}>
-                {listWithIds.map(({id, lat, lng}, index) => {
+                {places.map(({name, lat, lng}, index) => {
                   return (
-                    <Draggable key={id} draggableId={id} index={index}>
+                    <Draggable key={name} draggableId={name} index={index}>
                       {(provided) => (
                         <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
                           <div className="characters-thumb">
-                            <h3>id: {id} lat: {lat} long: {lng}</h3>
+                            <h3>name: {name} lat: {lat} long: {lng}</h3>
                           </div>
                         </li>
                       )}

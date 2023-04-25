@@ -47,13 +47,7 @@ import usePlacesAutocomplete, {
     return (
       <>
         <h1>Trip Planner</h1>
-        {/* <Places setPlaces={(position) => {
-            setSearchResult(position);
-            console.log(position);
-          }}/> */}
-        <Search
-          setSearchResult={setSearchResult} places={places} setPlaces={setPlaces}/>
-        
+        <Search setSearchResult={setSearchResult} places={places} setPlaces={setPlaces}/>
         {/* {searchResult && <Itinerary></>} */}
         {places && <Itinerary places={places} setPlaces={setPlaces} />}
         </>

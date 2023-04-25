@@ -10,14 +10,20 @@ import usePlacesAutocomplete, {
     ComboboxOption,
   } from "@reach/combobox";
   import "@reach/combobox/styles.css";
+  import { Place } from "../constants";
+  import { useState, useEffect } from "react";
+
   
-  type PlacesProps = {
+  type SearchProps = {
     setSearchResult: (position: google.maps.LatLngLiteral) => void;
-    setLatLngList : ((list: google.maps.LatLngLiteral[]) => void);
-    latLngList : (google.maps.LatLngLiteral[]);
+    setPlaces : ((list: Place[]) => void);
+    places : (Place[]);
+    searchResult: (google.maps.LatLngLiteral);
+    setDirections: (result: google.maps.DirectionsResult) => void;
   };
   
-  export default function Places({ setSearchResult, setLatLngList, latLngList }: PlacesProps) {
+  export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections }: SearchProps) {
+    var myPlace : Place;
     const {
       ready,
       value,
@@ -25,6 +31,44 @@ import usePlacesAutocomplete, {
       suggestions: { status, data },
       clearSuggestions,
     } = usePlacesAutocomplete();
+
+    const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
+    useEffect(() => {
+      const placesNoName = places.map((place) => ({
+        lat: place.lat,
+        lng: place.lng,
+      }));
+      setPlacesLatLng(placesNoName);
+    }, [places]);
+
+    const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
+      console.log("The start: " + placesLocs[0].lat + ", " + placesLocs[0].lng);
+      console.log("The destination: " + placesLocs[placesLocs.length-1].lat + ", " + placesLocs[placesLocs.length-1].lng);
+      if (!searchResult) return;
+  
+      //must convert into DirectionsWaypoints
+      const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
+        return {
+          location: new google.maps.LatLng(place.lat, place.lng),
+        };
+      });
+  
+      const service = new google.maps.DirectionsService();
+      service.route(
+        {
+          origin: placesLocs[0],
+          destination: placesLocs[placesLocs.length-1],
+          waypoints: inBetweenPlaces,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === "OK" && result) {
+            setDirections(result);
+          }
+        }
+      );
+    };
+
   
     const handleSelect = async (val: string) => {
       setValue(val, false);
@@ -33,9 +77,11 @@ import usePlacesAutocomplete, {
       const results = await getGeocode({ address: val });
       const { lat, lng } = await getLatLng(results[0]);
       //Add this lat lng set to a list that we can then display below the search bar
-      latLngList.push({lat, lng});
-      setLatLngList(latLngList);
+      myPlace = {name: val, lat:lat, lng:lng};
+      places.push(myPlace);
+      setPlaces(places);
       setSearchResult({ lat, lng });
+      fetchDirections(placesLatLng);
     };
   
     return (
