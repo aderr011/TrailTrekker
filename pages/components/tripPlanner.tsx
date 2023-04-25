@@ -14,7 +14,7 @@ import usePlacesAutocomplete, {
   import "@reach/combobox/styles.css";
   import Search from "./Search";
   import Itinerary from "./itinerary";
-  import { Place } from "../constants";
+  import { Place } from "../../constants";
 
 
   
