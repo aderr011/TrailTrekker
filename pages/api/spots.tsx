@@ -1,32 +1,11 @@
 import { ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "openai";
-
+import { Place } from "@/constants";
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY as string,
 });
 const myOpenai = new OpenAIApi(configuration);
 
-export default async function handler(req: any, res: any) {
-  if (!configuration.apiKey) {
-    res.status(500).json({
-      error: {
-        message: "OpenAI API key not configured, please follow instructions in README.md",
-      }
-    });
-    return;
-  }
-  
-  
-  const coordinates = req.body.coordinates || '';
-  const address = req.body.address || '';
-  console.log("Coordinate: " + coordinates + "\nAddress: " + address);
-  if (coordinates.trim().length === 0) {
-    res.status(400).json({
-      error: {
-        message: "Please enter a valid set of coordinates",
-      }
-    });
-    return;
-  }
+
   const preprevPropmt=`name:Kelly Flats Road
   desc:This trail is located approximately 7 miles northwest of the coordinates you provided and offers a moderate difficulty rating. The trail is 7 miles long and offers dispersed camping opportunities nearby.
 
@@ -78,7 +57,15 @@ export default async function handler(req: any, res: any) {
   endLng:-105.814078
   desc:Bald Mountain is a moderate off-road trail located in the Roosevelt National Forest near Red Feather Lakes. The 6-mile trail offers scenic views and a few dispersed camping sites along the way.`
 
+  export default async function askGPT(searchLoc: Place) {
+    if (!searchLoc) return;
+    if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
   
+    const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
+    const address = searchLoc.name;
+    console.log("Coordinate: " + coordinates + "\nAddress: " + address);
+    if (coordinates.trim().length === 0) throw new Error("Please enter a valid set of coordinates");
+
   const chatGptMessages = [
     {
       role: ChatCompletionRequestMessageRoleEnum.System,
@@ -123,26 +110,38 @@ lng:-105.612523`,
       role: ChatCompletionRequestMessageRoleEnum.User,
       content: "Coordinate: " + coordinates + "\nAddress: " + address,
     },
-]
+  ]
 
   try {
     const response = await myOpenai.createChatCompletion({
       messages: chatGptMessages,
       model: 'gpt-3.5-turbo',
     });
-    res.status(200).json({ result: response.data.choices[0].message?.content });
+
+    const places: Place[] = [];
+    const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n');
+    const placeRegex = /^name:(.*)\nlat:(.*)\nlng:(.*)$/;
+
+    if (!lines) return;
+    for (let i = 0; i < lines.length; i += 3) {
+      const nameMatch = lines[i].match(placeRegex);
+      const latMatch = lines[i + 1].match(placeRegex);
+      const lngMatch = lines[i + 2].match(placeRegex);
+
+      if (nameMatch && latMatch && lngMatch) {
+        const name = nameMatch[1].trim();
+        const lat = parseFloat(latMatch[1].trim());
+        const lng = parseFloat(lngMatch[1].trim());
+
+        places.push({ name, lat, lng });
+      }
+    }
+    return places;
   } catch(error: any) {
-    // Consider adjusting the error handling logic for your use case
     if (error.response) {
       console.error(error.response.status, error.response.data);
-      res.status(error.response.status).json(error.response.data);
     } else {
       console.error(`Error with OpenAI API request: ${error.message}`);
-      res.status(500).json({
-        error: {
-          message: 'An error occurred during your request.',
-        }
-      });
     }
   }
 }

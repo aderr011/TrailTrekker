@@ -12,6 +12,7 @@ import usePlacesAutocomplete, {
   import "@reach/combobox/styles.css";
   import { Place } from "../../constants";
   import { useState, useEffect } from "react";
+  import  askGPT  from "../api/spots"
 
   type SearchProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
@@ -45,7 +46,7 @@ import usePlacesAutocomplete, {
 
     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
       if (placesLocs.length < 2) return;
-      
+
       //Convert into DirectionsWaypoints
       const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
         return {
@@ -71,33 +72,34 @@ import usePlacesAutocomplete, {
       );
     };
 
-    async function getCampingSpots (searchPlace: Place) {
-      if (!searchPlace) return;
-      console.log("When sending")
-      console.log(searchPlace.name);
-      console.log(searchPlace.lat + ", " + searchPlace.lng);
+    // async function getCampingSpots (searchPlace: Place) {
+    //   if (!searchPlace) return;
 
-      try {
-        const response = await fetch("/api/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
-        });
+    //   console.log("When sending")
+    //   console.log(searchPlace.name);
+    //   console.log(searchPlace.lat + ", " + searchPlace.lng);
+
+    //   try {
+    //     const response = await fetch("/api/generate", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
+    //     });
   
-        const data = await response.json();
-        if (response.status !== 200) {
-          throw data.error || new Error(`Request failed with status ${response.status}`);
-        }
+    //     const data = await response.json();
+    //     if (response.status !== 200) {
+    //       throw data.error || new Error(`Request failed with status ${response.status}`);
+    //     }
   
-        console.log(data.result);
-      } catch(error:any) {
-        // Consider implementing your own error handling logic here
-        console.error(error);
-        alert(error.message);
-      }
-    }
+    //     console.log(data.result);
+    //   } catch(error:any) {
+    //     // Consider implementing your own error handling logic here
+    //     console.error(error);
+    //     alert(error.message);
+    //   }
+    // }
   
     const handleSelect = async (val: string) => {
       setValue("", false);
@@ -108,8 +110,8 @@ import usePlacesAutocomplete, {
       myPlace = {name: val, lat:lat, lng:lng};
       setPlaces([...places, myPlace]);
       setSearchResult({ lat, lng });
-      console.log("calling openai");
-      getCampingSpots(myPlace);
+      // console.log("calling openai");
+      // askGPT(myPlace);
     };
   
     return (

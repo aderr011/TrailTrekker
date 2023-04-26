@@ -7,12 +7,15 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
+import { Place } from "@/constants";
+import askGPT from "../api/spots";
 
 export default function Map() {
   // const [office, setOffice] = useState<google.maps.LatLngLiteral>();
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   const [places, setPlaces] = useState<google.maps.LatLngLiteral[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
+  const [trailResults, setTrailResults] = useState<Place[]>([]);
   const mapRef = useRef<GoogleMap>();
   const center = useMemo<google.maps.LatLngLiteral>(
     () => ({ lat: 40.572828, lng: -105.085134 }),
@@ -57,6 +60,17 @@ export default function Map() {
     );
   };
 
+  function handleDblClick (e: google.maps.MapMouseEvent): void {
+    //Could set some prop to true that would create a pop-up that 
+    //is like a loading bar that says loading trails
+
+    //In the current implementation (being this calling the openAI API)
+    //There is no way of passing the address to GPT so it may be less 
+    //precise as it could be
+    if (!e.latLng) return;
+    setTrailResults(askGPT({name:"", lat:e.latLng?.lat(), lng:e.latLng?.lng()}));
+  }
+
   return (
     <>
     <div className="header">
@@ -78,6 +92,7 @@ export default function Map() {
           mapContainerClassName="map-container"
           options={options}
           onLoad={onLoad}
+          onDblClick={handleDblClick}
         >
           {directions && (
             <DirectionsRenderer
@@ -99,6 +114,22 @@ export default function Map() {
                 icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
               />
             </>
+          )}
+          {trailResults && (
+            <MarkerClusterer>
+            {(clusterer) =>
+              trailResults.map((house) => (
+                <Marker
+                  key={house.lat}
+                  position={house}
+                  clusterer={clusterer}
+                  onClick={() => {
+                    fetchDirections(house);
+                  }}
+                />
+              ))
+            }
+          </MarkerClusterer>
           )}
         </GoogleMap>
       </div>
