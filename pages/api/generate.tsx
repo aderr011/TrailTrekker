@@ -1,112 +1,148 @@
+import { ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "openai";
 
-import axios from 'axios';
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY as string,
+});
+const myOpenai = new OpenAIApi(configuration);
 
-// Set up the API credentials and parameters
-const apiKey = process.env.OPENAI_API_KEY;
-// const prompt = `Provide off-road trails with dispersed camping locations given the coordinates:
+export default async function handler(req: any, res: any) {
+  if (!configuration.apiKey) {
+    res.status(500).json({
+      error: {
+        message: "OpenAI API key not configured, please follow instructions in README.md",
+      }
+    });
+    return;
+  }
+  
+  
+  const coordinates = req.body.coordinates || '';
+  const address = req.body.address || '';
+  console.log("Coordinate: " + coordinates + "\nAddress: " + address);
+  if (coordinates.trim().length === 0) {
+    res.status(400).json({
+      error: {
+        message: "Please enter a valid set of coordinates",
+      }
+    });
+    return;
+  }
+  const preprevPropmt=`name:Kelly Flats Road
+  desc:This trail is located approximately 7 miles northwest of the coordinates you provided and offers a moderate difficulty rating. The trail is 7 miles long and offers dispersed camping opportunities nearby.
 
-// In the form:
+  name:Old Flowers Road
+  desc:Old Flowers Road is a mountain passage that travels from the Stove Prairie community westward to an area known as Pingree Park. It meanders through a section of the Roosevelt National Forest, known by locals as High Park, with a long history of mountain ranching.
+    
+  name:Green Ridge Trail
+  desc:Green Ridge Trail is a very fun and adventurous trail that travels north along the Green Ridge from Poudre Canyon to the Deadman vicinity near Red Feather Lakes, Colorado. The trail has numerous water crossings with some of them exceeding 36" in depth. 
 
-// name:
-// lat:
-// lng:
-// desc:`;
-const model = 'text-davinci-003';
-const maxTokens: number = 200;
-const apiUrl = 'https://api.openai.com/v1/completions';
+  name:Deadman Road
+  desc:Deadman Road is an easy off-road trail through the Roosevelt National Forest with seemingly endless forest access and different routes to explore. Traveling from Red Feather Lakes to the Medicine Bow National Forest, Deadman Road was established for logging which it is still used for to this day. The logging history is also where this road gets its name, doesn't actually have anything to do with a dead man. Luckily, this has allowed for hundreds of miles OHV and 4x4 roads to be created.
 
-// Set up the request body
-type requestBodyType = {
-  prompt: string,
-  temperature: number,
-  maxTokens: number,
-  n: number,
-  model: string,
-  apiKey: string | undefined
-};
+  name:Roaring Creek Road
+  desc:Roaring Creek Road is the 4X4 road that ties together the more difficult trails in the Deadman and Bald Mountain areas of the Roosevelt National Forest. A well improved two-vehicle wide gravel road awaits you for the first three miles of Roaring Creek Road. In the last two miles, the road becomes more narrow with few places for vehicles to pass.
 
-export default async function sendRequest(latLng: google.maps.LatLngLiteral): Promise<string> {
-  const coordinates:string = "(" + latLng.lat + ", " + latLng.lng + ")";
-  const prompt = `Provide off-road trails with dispersed camping locations given the coordinates: ${coordinates}
+  name:Swamp Creek Road
+  desc:Swamp Creek offers some excellent opportunities to test your 4X4 through heavy and drifting snow. Popular with campers during the summer months, excellent dispersed camping with views of the mountains and the Poudre River Canyon makes this a great weekend destination. The ghost town of Manhattan, Colorado is located just south of the Swamp Creek Road trailhead.
 
-      In the form:
+  name:Crown Point Road
+  desc:Crown Point Road is a scenic 4x4 trail that offers stunning views of Horsetooth Reservoir and the surrounding mountains. There are several dispersed camping sites along the trail, but be aware that the trail can be narrow and steep in some sections.
+    
+  name:Bald Mountain
+  desc:Creedmore Bald Mountain is a 4WD trail located in the Roosevelt National Forest a few miles southwest of Red Feather Lakes, CO. The trail winds through the dense Lodge-pole Pine forest as it climbs to nearly 11,000 feet. The trail offers a variety of experiences as you head west on the 13 mile journey. It is known for its rocky mid-section and then its muddy path near the trail's end. This route is true 4WD experience to escape the summer heat as it remains in the trees.`
+  const prevPrompt=`name:Kelly Flats Road
+  startLat:40.682875
+  startLng:-105.482818
+  endLat:40.725702, 
+  endLng:-105.582933
+  desc:This trail is located approximately 7 miles northwest of the coordinates you provided and offers a moderate difficulty rating. The trail is 7 miles long and offers dispersed camping opportunities nearby.
+  
+  name:Swamp Creek Road
+  startLat:40.751547
+  startLng:-105.616751
+  endLat:40.732202
+  endLng:-105.599442
+  desc:Swamp Creek offers some excellent opportunities to test your 4X4 through heavy and drifting snow. Popular with campers during the summer months, excellent dispersed camping with views of the mountains and the Poudre River Canyon makes this a great weekend destination. The ghost town of Manhattan, Colorado is located just south of the Swamp Creek Road trailhead.
 
-      name:
-      lat:
-      lng:
-      desc:`;
+  name:Crown Point Road
+  startLat:40.654853
+  startLng:-105.526077
+  endLat:40.609822
+  endLng:-105.756716
+  desc:Crown Point Road is a scenic 4x4 trail that offers stunning views of Horsetooth Reservoir and the surrounding mountains. There are several dispersed camping sites along the trail, but be aware that the trail can be narrow and steep in some sections.
+  
+  name:Bald Mountain
+  startLat:40.762935 
+  startLng:-105.612523
+  endLat: 40.777792
+  endLng:-105.814078
+  desc:Creedmore Bald Mountain is a 4WD trail located in the Roosevelt National Forest a few miles southwest of Red Feather Lakes, CO. The trail winds through the dense Lodge-pole Pine forest as it climbs to nearly 11,000 feet. The trail offers a variety of experiences as you head west on the 13 mile journey. It is known for its rocky mid-section and then its muddy path near the trail's end. This route is true 4WD experience to escape the summer heat as it remains in the trees.`
 
-  const url = `${apiUrl}engines/${model}/completions`;
-  const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
-  const data = { prompt: prompt, max_tokens: maxTokens };
-  const response = await axios.post(url, data, { headers: headers });
-  return response.data.choices[0].text;
+  
+  const chatGptMessages = [
+    {
+      role: ChatCompletionRequestMessageRoleEnum.System,
+      content: "You are a helpful assistant who returns a list of off-road trails with dispersed camping on them within 30 miles of a given a coordinate and/or coordinate",
+    },
+    {
+      role: ChatCompletionRequestMessageRoleEnum.User,
+      content: `Coordinate: (40.702875, -105.584978)
+      Address: Rustic, CO, USA`,
+    },
+    {
+      role: ChatCompletionRequestMessageRoleEnum.Assistant,
+      content: `name:Kelly Flats Road
+lat:40.682875
+lng:-105.482818
+
+name:Old Flowers Road
+lat:40.619240
+lng:-105.357196
+
+name:Deadman Road
+lat:40.792491 
+lng:-105.603987
+
+name:Roaring Creek Road
+lat40.805946 
+lng:-105.772568
+
+name:Swamp Creek Road
+lat:40.751547
+lng:-105.616751
+  
+name:Crown Point Road
+lat:40.654853
+lng:-105.526077
+
+name:Bald Mountain
+lat:40.762935 
+lng:-105.612523`,
+    },
+    {
+      role: ChatCompletionRequestMessageRoleEnum.User,
+      content: "Coordinate: " + coordinates + "\nAddress: " + address,
+    },
+]
+
+  try {
+    const response = await myOpenai.createChatCompletion({
+      messages: chatGptMessages,
+      model: 'gpt-3.5-turbo',
+    });
+    res.status(200).json({ result: response.data.choices[0].message?.content });
+  } catch(error: any) {
+    // Consider adjusting the error handling logic for your use case
+    if (error.response) {
+      console.error(error.response.status, error.response.data);
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      console.error(`Error with OpenAI API request: ${error.message}`);
+      res.status(500).json({
+        error: {
+          message: 'An error occurred during your request.',
+        }
+      });
+    }
+  }
 }
-
-// // Send the API request
-// axios.post(apiUrl, requestBody)
-//   .then((response) => {
-//     // Handle the response from the API
-//     console.log(response.data.choices[0].text);
-//   })
-//   .catch((error) => {
-//     console.log(error);
-//   });
-
-// const openai = new OpenAIApi(configuration);
-
-// export default async function (req: any, res: Response) {
-//   if (!configuration.apiKey) {
-//     res.status(500).json({
-//       error: {
-//         message: "OpenAI API key not configured, please follow instructions in README.md",
-//       }
-//     });
-//     return;
-//   }
-
-//   const coordinates = req.body.coordinates || '';
-//   if (coordinates.trim().length === 0) {
-//     res.status(400).json({
-//       error: {
-//         message: "Please enter valid coordinates",
-//       }
-//     });
-//     return;
-//   }
-
-//   try {
-//     const completion = await openai.createCompletion({
-//       model: "text-davinci-003",
-//       prompt: generatePrompt(animal),
-//       temperature: 0.6,
-//     });
-//     res.status(200).json({ result: completion.data.choices[0].text });
-//   } catch(error) {
-//     // Consider adjusting the error handling logic for your use case
-//     if (error.response) {
-//       console.error(error.response.status, error.response.data);
-//       res.status(error.response.status).json(error.response.data);
-//     } else {
-//       console.error(`Error with OpenAI API request: ${error.message}`);
-//       res.status(500).json({
-//         error: {
-//           message: 'An error occurred during your request.',
-//         }
-//       });
-//     }
-//   }
-// }
-
-// function generatePrompt(coordinates: google.maps.LatLngLiteral) {
-//   const coordinates =
-//     animal[0].toUpperCase() + animal.slice(1).toLowerCase();
-//   return `Suggest offroading trails with dispersed camping spaces on the trail given the coordinates: ${capitalizedAnimal}
-
-// coordinates: Cat
-// Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-// Animal: Dog
-// Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-// Animal: ${capitalizedAnimal}
-// Names:`;
-// }

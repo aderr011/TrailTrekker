@@ -77,11 +77,27 @@ import usePlacesAutocomplete, {
       );
     };
 
-    async function getCamping (latLng: google.maps.LatLngLiteral) {
-      if (!latLng) return;
-      
+    async function getCampingSpots (searchPlace: Place) {
+      if (!searchPlace) return;
+      console.log("When sending")
+      console.log(searchPlace.name);
+      console.log(searchPlace.lat + ", " + searchPlace.lng);
+
       try {
-        console.log(sendRequest(latLng));
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
+        });
+  
+        const data = await response.json();
+        if (response.status !== 200) {
+          throw data.error || new Error(`Request failed with status ${response.status}`);
+        }
+  
+        console.log(data.result);
       } catch(error:any) {
         // Consider implementing your own error handling logic here
         console.error(error);
@@ -99,7 +115,7 @@ import usePlacesAutocomplete, {
       setPlaces([...places, myPlace]);
       setSearchResult({ lat, lng });
       console.log("calling openai");
-      getCamping({ lat, lng });
+      getCampingSpots(myPlace);
     };
   
     return (
