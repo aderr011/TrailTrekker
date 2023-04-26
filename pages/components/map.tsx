@@ -16,6 +16,7 @@ export default function Map() {
   const [places, setPlaces] = useState<google.maps.LatLngLiteral[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
   const [trailResults, setTrailResults] = useState<Place[]>([]);
+  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const mapRef = useRef<GoogleMap>();
   const center = useMemo<google.maps.LatLngLiteral>(
     () => ({ lat: 40.572828, lng: -105.085134 }),
@@ -68,7 +69,8 @@ export default function Map() {
     //There is no way of passing the address to GPT so it may be less 
     //precise as it could be
     if (!e.latLng) return;
-    setTrailResults(askGPT({name:"", lat:e.latLng?.lat(), lng:e.latLng?.lng()}));
+    //Set a hook that will then be checked in the Spots file
+    setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
 
   return (
@@ -115,21 +117,10 @@ export default function Map() {
               />
             </>
           )}
+          {/* Maybe you can move the below component into the spots.tsx file 
+          and move that out of the API path and then pass the prop down to that?? */}
           {trailResults && (
-            <MarkerClusterer>
-            {(clusterer) =>
-              trailResults.map((house) => (
-                <Marker
-                  key={house.lat}
-                  position={house}
-                  clusterer={clusterer}
-                  onClick={() => {
-                    fetchDirections(house);
-                  }}
-                />
-              ))
-            }
-          </MarkerClusterer>
+            
           )}
         </GoogleMap>
       </div>

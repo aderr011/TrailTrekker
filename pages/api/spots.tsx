@@ -1,10 +1,144 @@
 import { ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "openai";
 import { Place } from "@/constants";
+import {useEffect} from "react";
+import {
+  GoogleMap,
+  Marker,
+  DirectionsRenderer,
+  Circle,
+  MarkerClusterer,
+} from "@react-google-maps/api";
+
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY as string,
 });
 const myOpenai = new OpenAIApi(configuration);
 
+
+
+
+type SearchProps = {
+  setSearchTrialsLoc: (location: google.maps.LatLngLiteral | undefined) => void;
+  searchTrailsLoc : (google.maps.LatLngLiteral);
+  setTrailResults : (places: Place[]) => void;
+  trailResults : (Place[]);
+};
+
+export default function Spots({ setSearchTrialsLoc, searchTrailsLoc, setTrailResults, trailResults}: SearchProps) {
+  
+
+  async function askGPT(searchLoc: Place) {
+    if (!searchLoc) return;
+    if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
+  
+    const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
+    const address = searchLoc.name;
+    console.log("Coordinate: " + coordinates + "\nAddress: " + address);
+    if (coordinates.trim().length === 0) throw new Error("Please enter a valid set of coordinates");
+  
+    const chatGptMessages = [
+      {
+        role: ChatCompletionRequestMessageRoleEnum.System,
+        content: "You are a helpful assistant who returns a list of off-road trails with dispersed camping on them within 30 miles of a given a coordinate and/or coordinate",
+      },
+      {
+        role: ChatCompletionRequestMessageRoleEnum.User,
+        content: `Coordinate: (40.702875, -105.584978)
+        Address: Rustic, CO, USA`,
+      },
+      {
+        role: ChatCompletionRequestMessageRoleEnum.Assistant,
+        content: `name:Kelly Flats Road
+  lat:40.682875
+  lng:-105.482818
+  
+  name:Old Flowers Road
+  lat:40.619240
+  lng:-105.357196
+  
+  name:Deadman Road
+  lat:40.792491 
+  lng:-105.603987
+  
+  name:Roaring Creek Road
+  lat40.805946 
+  lng:-105.772568
+  
+  name:Swamp Creek Road
+  lat:40.751547
+  lng:-105.616751
+  
+  name:Crown Point Road
+  lat:40.654853
+  lng:-105.526077
+  
+  name:Bald Mountain
+  lat:40.762935 
+  lng:-105.612523`,
+      },
+      {
+        role: ChatCompletionRequestMessageRoleEnum.User,
+        content: "Coordinate: " + coordinates + "\nAddress: " + address,
+      },
+    ]
+  
+    try {
+      const response = await myOpenai.createChatCompletion({
+        messages: chatGptMessages,
+        model: 'gpt-3.5-turbo',
+      });
+  
+      const places: Place[] = [];
+      const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n');
+      const placeRegex = /^name:(.*)\nlat:(.*)\nlng:(.*)$/;
+  
+      if (!lines) return;
+      for (let i = 0; i < lines.length; i += 3) {
+        const nameMatch = lines[i].match(placeRegex);
+        const latMatch = lines[i + 1].match(placeRegex);
+        const lngMatch = lines[i + 2].match(placeRegex);
+  
+        if (nameMatch && latMatch && lngMatch) {
+          const name = nameMatch[1].trim();
+          const lat = parseFloat(latMatch[1].trim());
+          const lng = parseFloat(lngMatch[1].trim());
+  
+          places.push({ name, lat, lng });
+        }
+      }
+      setTrailResults(places);
+    } catch(error: any) {
+      if (error.response) {
+        console.error(error.response.status, error.response.data);
+      } else {
+        console.error(`Error with OpenAI API request: ${error.message}`);
+      }
+    }
+  }
+
+  //Whenever the searchTrailsLoc changes we call chatGPT 
+  useEffect(() => {
+    var myPlace: Place = {name:"", lat:searchTrailsLoc.lat, lng:searchTrailsLoc.lng};
+    askGPT(myPlace);
+  }, [searchTrailsLoc]);
+
+
+  return (
+    <MarkerClusterer>
+      {(clusterer) =>
+        trailResults.map((trail) => (
+          <Marker
+            key={trail.lat}
+            position={trail}
+            clusterer={clusterer}
+            // onClick={() => {
+            //   fetchDirections(trail);
+            // }}
+          />
+        ))
+      }
+    </MarkerClusterer>
+  ); 
 
   const preprevPropmt=`name:Kelly Flats Road
   desc:This trail is located approximately 7 miles northwest of the coordinates you provided and offers a moderate difficulty rating. The trail is 7 miles long and offers dispersed camping opportunities nearby.
@@ -57,91 +191,8 @@ const myOpenai = new OpenAIApi(configuration);
   endLng:-105.814078
   desc:Bald Mountain is a moderate off-road trail located in the Roosevelt National Forest near Red Feather Lakes. The 6-mile trail offers scenic views and a few dispersed camping sites along the way.`
 
-  export default async function askGPT(searchLoc: Place) {
-    if (!searchLoc) return;
-    if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
   
-    const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
-    const address = searchLoc.name;
-    console.log("Coordinate: " + coordinates + "\nAddress: " + address);
-    if (coordinates.trim().length === 0) throw new Error("Please enter a valid set of coordinates");
 
-  const chatGptMessages = [
-    {
-      role: ChatCompletionRequestMessageRoleEnum.System,
-      content: "You are a helpful assistant who returns a list of off-road trails with dispersed camping on them within 30 miles of a given a coordinate and/or coordinate",
-    },
-    {
-      role: ChatCompletionRequestMessageRoleEnum.User,
-      content: `Coordinate: (40.702875, -105.584978)
-      Address: Rustic, CO, USA`,
-    },
-    {
-      role: ChatCompletionRequestMessageRoleEnum.Assistant,
-      content: `name:Kelly Flats Road
-lat:40.682875
-lng:-105.482818
 
-name:Old Flowers Road
-lat:40.619240
-lng:-105.357196
 
-name:Deadman Road
-lat:40.792491 
-lng:-105.603987
 
-name:Roaring Creek Road
-lat40.805946 
-lng:-105.772568
-
-name:Swamp Creek Road
-lat:40.751547
-lng:-105.616751
-  
-name:Crown Point Road
-lat:40.654853
-lng:-105.526077
-
-name:Bald Mountain
-lat:40.762935 
-lng:-105.612523`,
-    },
-    {
-      role: ChatCompletionRequestMessageRoleEnum.User,
-      content: "Coordinate: " + coordinates + "\nAddress: " + address,
-    },
-  ]
-
-  try {
-    const response = await myOpenai.createChatCompletion({
-      messages: chatGptMessages,
-      model: 'gpt-3.5-turbo',
-    });
-
-    const places: Place[] = [];
-    const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n');
-    const placeRegex = /^name:(.*)\nlat:(.*)\nlng:(.*)$/;
-
-    if (!lines) return;
-    for (let i = 0; i < lines.length; i += 3) {
-      const nameMatch = lines[i].match(placeRegex);
-      const latMatch = lines[i + 1].match(placeRegex);
-      const lngMatch = lines[i + 2].match(placeRegex);
-
-      if (nameMatch && latMatch && lngMatch) {
-        const name = nameMatch[1].trim();
-        const lat = parseFloat(latMatch[1].trim());
-        const lng = parseFloat(lngMatch[1].trim());
-
-        places.push({ name, lat, lng });
-      }
-    }
-    return places;
-  } catch(error: any) {
-    if (error.response) {
-      console.error(error.response.status, error.response.data);
-    } else {
-      console.error(`Error with OpenAI API request: ${error.message}`);
-    }
-  }
-}
