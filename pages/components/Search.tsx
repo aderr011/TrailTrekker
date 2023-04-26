@@ -12,7 +12,6 @@ import usePlacesAutocomplete, {
   import "@reach/combobox/styles.css";
   import { Place } from "../../constants";
   import { useState, useEffect } from "react";
-  import sendRequest from "../api/generate";
 
   type SearchProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
@@ -35,8 +34,6 @@ import usePlacesAutocomplete, {
     const[ result, setResult] = useState<string>("");
     const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
     useEffect(() => {
-      console.log("HERE IN THE USEEFFECT")
-      console.log(places);
       const placesNoName = places.map((place) => ({
         lat: place.lat,
         lng: place.lng,
@@ -47,11 +44,8 @@ import usePlacesAutocomplete, {
 
 
     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
-      if (placesLocs.length == 0) {
-        console.log("something wrong");
-        return;
-      }
-
+      if (placesLocs.length < 2) return;
+      
       //Convert into DirectionsWaypoints
       const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
         return {
@@ -106,7 +100,7 @@ import usePlacesAutocomplete, {
     }
   
     const handleSelect = async (val: string) => {
-      setValue(val, false);
+      setValue("", false);
       clearSuggestions();
 
       const results = await getGeocode({ address: val });
