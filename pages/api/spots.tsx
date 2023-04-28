@@ -10,7 +10,7 @@ import {
 } from "@react-google-maps/api";
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY as string,
+  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
 });
 const myOpenai = new OpenAIApi(configuration);
 
@@ -18,17 +18,17 @@ const myOpenai = new OpenAIApi(configuration);
 
 
 type SearchProps = {
-  setSearchTrialsLoc: (location: google.maps.LatLngLiteral | undefined) => void;
   searchTrailsLoc : (google.maps.LatLngLiteral);
   setTrailResults : (places: Place[]) => void;
   trailResults : (Place[]);
 };
 
-export default function Spots({ setSearchTrialsLoc, searchTrailsLoc, setTrailResults, trailResults}: SearchProps) {
+export default function Spots({searchTrailsLoc, setTrailResults, trailResults}: SearchProps) {
   
 
   async function askGPT(searchLoc: Place) {
     if (!searchLoc) return;
+    // console.log("Key: " +configuration.apiKey);
     if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
   
     const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
@@ -39,74 +39,78 @@ export default function Spots({ setSearchTrialsLoc, searchTrailsLoc, setTrailRes
     const chatGptMessages = [
       {
         role: ChatCompletionRequestMessageRoleEnum.System,
-        content: "You are a helpful assistant who returns a list of off-road trails with dispersed camping on them within 30 miles of a given a coordinate and/or coordinate",
+        content: "You are a helpful assistant who returns a list of Motor Vehicle Use trails within 30 miles of a given a coordinate and/or coordinate",
       },
       {
         role: ChatCompletionRequestMessageRoleEnum.User,
-        content: `Coordinate: (40.702875, -105.584978)
-        Address: Rustic, CO, USA`,
+        content: `Coordinate: (40.69948501341462, -105.5812484182215)`,
       },
       {
         role: ChatCompletionRequestMessageRoleEnum.Assistant,
         content: `name:Kelly Flats Road
-  lat:40.682875
-  lng:-105.482818
+lat:40.682875
+lng:-105.482818
   
-  name:Old Flowers Road
-  lat:40.619240
-  lng:-105.357196
+name:Old Flowers Road
+lat:40.619240
+lng:-105.357196
   
-  name:Deadman Road
-  lat:40.792491 
-  lng:-105.603987
+name:Deadman Road
+lat:40.792491 
+lng:-105.603987
   
-  name:Roaring Creek Road
-  lat40.805946 
-  lng:-105.772568
+name:Roaring Creek Road
+lat40.805946 
+lng:-105.772568
   
-  name:Swamp Creek Road
-  lat:40.751547
-  lng:-105.616751
+name:Swamp Creek Road
+lat:40.751547
+lng:-105.616751
   
-  name:Crown Point Road
-  lat:40.654853
-  lng:-105.526077
+name:Crown Point Road
+lat:40.654853
+lng:-105.526077
   
-  name:Bald Mountain
-  lat:40.762935 
-  lng:-105.612523`,
+name:Bald Mountain
+lat:40.762935 
+lng:-105.612523`,
       },
       {
         role: ChatCompletionRequestMessageRoleEnum.User,
-        content: "Coordinate: " + coordinates + "\nAddress: " + address,
+        content: "Coordinate: " + coordinates,
       },
     ]
   
     try {
+      console.log("Sending request")
       const response = await myOpenai.createChatCompletion({
         messages: chatGptMessages,
         model: 'gpt-3.5-turbo',
       });
   
-      const places: Place[] = [];
-      const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n');
-      const placeRegex = /^name:(.*)\nlat:(.*)\nlng:(.*)$/;
+      let placesList: Place[] = [];
+      console.log(response.data.choices[0].message?.content);
+      const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n\n');
+      if (!lines || lines.length < 2) return;
+      console.log(lines);
   
-      if (!lines) return;
-      for (let i = 0; i < lines.length; i += 3) {
-        const nameMatch = lines[i].match(placeRegex);
-        const latMatch = lines[i + 1].match(placeRegex);
-        const lngMatch = lines[i + 2].match(placeRegex);
-  
-        if (nameMatch && latMatch && lngMatch) {
-          const name = nameMatch[1].trim();
-          const lat = parseFloat(latMatch[1].trim());
-          const lng = parseFloat(lngMatch[1].trim());
-  
-          places.push({ name, lat, lng });
-        }
-      }
-      setTrailResults(places);
+       const places: string[] = lines.filter(function(line) {
+        if (!line.startsWith("name")) return false;
+        return true;
+      })
+      console.log("The Lines: ")
+      console.log(places);
+
+      placesList = places.map((placeString) => {
+        const lines = placeString.trim().split("\n");
+        var name: string = (lines[0]) ? lines[0].split(":")[1].trim(): "";
+        var lat: number = (lines[1]) ? parseFloat(lines[1].split(":")[1].trim()): 0;
+        var lng: number = (lines[2]) ? parseFloat(lines[2].split(":")[1].trim()): 0;
+        return { name, lat, lng };
+      });
+      console.log("The Places List:")
+      console.log(placesList);
+      setTrailResults(placesList);
     } catch(error: any) {
       if (error.response) {
         console.error(error.response.status, error.response.data);
@@ -118,7 +122,7 @@ export default function Spots({ setSearchTrialsLoc, searchTrailsLoc, setTrailRes
 
   //Whenever the searchTrailsLoc changes we call chatGPT 
   useEffect(() => {
-    var myPlace: Place = {name:"", lat:searchTrailsLoc.lat, lng:searchTrailsLoc.lng};
+    var myPlace: Place = {name:"", lat:searchTrailsLoc?.lat, lng:searchTrailsLoc?.lng};
     askGPT(myPlace);
   }, [searchTrailsLoc]);
 
@@ -131,6 +135,7 @@ export default function Spots({ setSearchTrialsLoc, searchTrailsLoc, setTrailRes
             key={trail.lat}
             position={trail}
             clusterer={clusterer}
+            label={trail.name}
             // onClick={() => {
             //   fetchDirections(trail);
             // }}
@@ -139,6 +144,7 @@ export default function Spots({ setSearchTrialsLoc, searchTrailsLoc, setTrailRes
       }
     </MarkerClusterer>
   ); 
+}
 
   const preprevPropmt=`name:Kelly Flats Road
   desc:This trail is located approximately 7 miles northwest of the coordinates you provided and offers a moderate difficulty rating. The trail is 7 miles long and offers dispersed camping opportunities nearby.

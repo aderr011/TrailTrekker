@@ -5,8 +5,10 @@ import {
   DirectionsRenderer,
   Circle,
   MarkerClusterer,
+  useGoogleMap,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
+import Spots from "../api/spots";
 import { Place } from "@/constants";
 import askGPT from "../api/spots";
 
@@ -19,7 +21,7 @@ export default function Map() {
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const mapRef = useRef<GoogleMap>();
   const center = useMemo<google.maps.LatLngLiteral>(
-    () => ({ lat: 40.572828, lng: -105.085134 }),
+    () => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),
     []
   );
   const options = useMemo<google.maps.MapOptions>(
@@ -30,7 +32,32 @@ export default function Map() {
     }),
     []
   );
-  const onLoad = useCallback((map) => (mapRef.current = map), []);
+  const onLoad = useCallback((map) => {
+    mapRef.current = map;
+
+    const geoJsonLayer = new google.maps.Data();
+
+  // Load the GeoJSON data
+  fetch('https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
+    .then((response) => response.json())
+    .then((data) => {
+      // Add the GeoJSON data to the layer
+      geoJsonLayer.addGeoJson(data);
+
+      // Set the options for the GeoJSON layer
+      geoJsonLayer.setStyle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+        fillColor: '#FF0000',
+        fillOpacity: 0.35,
+      });
+
+      // Add the GeoJSON layer to the map
+      geoJsonLayer.setMap(map);
+    });
+
+  },[]);
   const houses = useMemo(() => generateHouses(center), [center]);
 
   const fetchDirections = (houses: google.maps.LatLngLiteral[]) => {
@@ -69,7 +96,17 @@ export default function Map() {
     //There is no way of passing the address to GPT so it may be less 
     //precise as it could be
     if (!e.latLng) return;
+
+    // const dataLayer = new google.maps.Data();
+    // dataLayer.addGeoJson();
+    // dataLayer.setMap(map);
+
+    // // const map = useGoogleMap();
+    // if (!map) return;
+    // map.data.loadGeoJson('https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/2/query?outFields=*&where=1%3D1&f=geojson');
+
     //Set a hook that will then be checked in the Spots file
+    // setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
     setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
 
@@ -109,6 +146,14 @@ export default function Map() {
             />
           )}
 
+<GoogleMap
+  mapContainerStyle={{ width: '100%', height: '400px' }}
+  zoom={10}
+  center={{ lat: 37.7749, lng: -122.4194 }}
+>
+</GoogleMap>
+
+
           {searchResult && (
             <>
               <Marker
@@ -120,7 +165,7 @@ export default function Map() {
           {/* Maybe you can move the below component into the spots.tsx file 
           and move that out of the API path and then pass the prop down to that?? */}
           {trailResults && (
-            
+            <Spots searchTrailsLoc={searchTrailsLoc} setTrailResults={setTrailResults} trailResults={trailResults}/>
           )}
         </GoogleMap>
       </div>
