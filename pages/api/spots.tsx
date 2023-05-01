@@ -2,10 +2,7 @@ import { ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "
 import { Place } from "@/constants";
 import {useEffect} from "react";
 import {
-  GoogleMap,
   Marker,
-  DirectionsRenderer,
-  Circle,
   MarkerClusterer,
 } from "@react-google-maps/api";
 
@@ -14,18 +11,13 @@ const configuration = new Configuration({
 });
 const myOpenai = new OpenAIApi(configuration);
 
-
-
-
 type SearchProps = {
-  searchTrailsLoc : (google.maps.LatLngLiteral);
+  searchTrailsLoc : (google.maps.LatLngLiteral | undefined);
   setTrailResults : (places: Place[]) => void;
   trailResults : (Place[]);
 };
 
 export default function Spots({searchTrailsLoc, setTrailResults, trailResults}: SearchProps) {
-  
-
   async function askGPT(searchLoc: Place) {
     if (!searchLoc) return;
     // console.log("Key: " +configuration.apiKey);
@@ -122,10 +114,10 @@ lng:-105.612523`,
 
   //Whenever the searchTrailsLoc changes we call chatGPT 
   useEffect(() => {
+    if (!searchTrailsLoc?.lat || !searchTrailsLoc?.lng) return;
     var myPlace: Place = {name:"", lat:searchTrailsLoc?.lat, lng:searchTrailsLoc?.lng};
     askGPT(myPlace);
   }, [searchTrailsLoc]);
-
 
   return (
     <MarkerClusterer>

@@ -3,6 +3,7 @@ import {
   GoogleMap,
   Marker,
   DirectionsRenderer,
+  Data,
   Circle,
   MarkerClusterer,
   useGoogleMap,
@@ -13,17 +14,14 @@ import { Place } from "@/constants";
 import askGPT from "../api/spots";
 
 export default function Map() {
-  // const [office, setOffice] = useState<google.maps.LatLngLiteral>();
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
-  const [places, setPlaces] = useState<google.maps.LatLngLiteral[]>([]);
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
-  const mapRef = useRef<GoogleMap>();
-  const center = useMemo<google.maps.LatLngLiteral>(
-    () => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),
-    []
-  );
+  const mapRef = useRef<google.maps.Map>();
+
+  const zoom = useMemo<number>(() => (10),[]);
+  const center = useMemo<google.maps.LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
   const options = useMemo<google.maps.MapOptions>(
     () => ({
       mapId: "dc6c5f27dbeb3eae",
@@ -32,81 +30,70 @@ export default function Map() {
     }),
     []
   );
-  const onLoad = useCallback((map) => {
-    mapRef.current = map;
 
+  function onIdle() {
+    const map: google.maps.Map | undefined = mapRef.current;
+    const mapZoom: number | undefined = mapRef.current?.getZoom();
+    const mapBounds: google.maps.LatLngBounds | undefined = mapRef.current?.getBounds();
+    console.log(mapZoom)
+
+    if (!map) return;
+    if (!mapZoom) return;
+    if (!mapBounds) return;
+    
     const geoJsonLayer = new google.maps.Data();
 
-  // Load the GeoJSON data
-  fetch('https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
-    .then((response) => response.json())
-    .then((data) => {
-      // Add the GeoJSON data to the layer
-      geoJsonLayer.addGeoJson(data);
-
-      // Set the options for the GeoJSON layer
+    const loadGeoJsonData = (bounds:google.maps.LatLngBounds) => {
+      const { east, north, south, west } = bounds.toJSON();
+      //This code is very inefficient... It queries for data on every move of the map.
+      //I need to optimize this in some way...One possibility could be to store the previous bounds 
+      //This previous query could be checked against the new bounds. 
+      //If the current query's bounds fall within the previous query we do not send it
+      //If the current query's bounds fall 
+      console.log("Fetching the USFS data")
+      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      // Load the GeoJSON data
+      geoJsonLayer.loadGeoJson(queryString)
       geoJsonLayer.setStyle({
-        strokeColor: '#FF0000',
-        strokeOpacity: 1.0,
-        strokeWeight: 2,
-        fillColor: '#FF0000',
-        fillOpacity: 0.35,
-      });
-
-      // Add the GeoJSON layer to the map
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 2,
+            fillColor: '#FF0000',
+            fillOpacity: 0.35,
+          });
+      console.log("Results Populated")
+      // const toMatch = "3 - SUITABLE FOR PASSENGER CARS"
+      // var count = 0;
+      // geoJsonLayer.addListener('addfeature', (evt:any) => {
+      //   if (evt.feature.getProperty('OPER_MAINT_LEL') == toMatch) {
+      //     count++
+      //     var regionCircle = new google.maps.Circle({
+      //       center: evt.feature.getGeometry().get,
+      //       strokeColor: '#FF0000',
+      //       strokeOpacity: 0.8,
+      //       strokeWeight: 2,
+      //       fillColor: '#FF0000',
+      //       fillOpacity: 0.35,
+      //       radius: 500,
+      //       map: map
+      //     });
+      //   }
+      // });
       geoJsonLayer.setMap(map);
-    });
+    };
 
+    if (mapZoom > 9) {
+      loadGeoJsonData(mapBounds);
+    }
+    mapRef.current = map;
+  }
+
+  const onLoad = useCallback((map) => {
+    mapRef.current = map;
   },[]);
-  const houses = useMemo(() => generateHouses(center), [center]);
-
-  const fetchDirections = (houses: google.maps.LatLngLiteral[]) => {
-    console.log("The start: " + houses[0].lat + ", " + houses[0].lng);
-    console.log("The destination: " + houses[houses.length-1].lat + ", " + houses[houses.length-1].lng);
-    if (!searchResult) return;
-
-    //must convert into DirectionsWaypoints
-    const inBetweenPlaces = houses.slice(1, houses.length-1).map((house) => {
-      return {
-        location: new google.maps.LatLng(house.lat, house.lng),
-      };
-    });
-
-    const service = new google.maps.DirectionsService();
-    service.route(
-      {
-        origin: houses[0],
-        destination: houses[houses.length-1],
-        waypoints: inBetweenPlaces,
-        travelMode: google.maps.TravelMode.DRIVING,
-      },
-      (result, status) => {
-        if (status === "OK" && result) {
-          setDirections(result);
-        }
-      }
-    );
-  };
 
   function handleDblClick (e: google.maps.MapMouseEvent): void {
-    //Could set some prop to true that would create a pop-up that 
-    //is like a loading bar that says loading trails
-
-    //In the current implementation (being this calling the openAI API)
-    //There is no way of passing the address to GPT so it may be less 
-    //precise as it could be
     if (!e.latLng) return;
-
-    // const dataLayer = new google.maps.Data();
-    // dataLayer.addGeoJson();
-    // dataLayer.setMap(map);
-
-    // // const map = useGoogleMap();
-    // if (!map) return;
-    // map.data.loadGeoJson('https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/2/query?outFields=*&where=1%3D1&f=geojson');
-
-    //Set a hook that will then be checked in the Spots file
-    // setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
     setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
 
@@ -126,12 +113,13 @@ export default function Map() {
       </div>
       <div className="map">
         <GoogleMap
-          zoom={10}
+          zoom={zoom}
           center={center}
           mapContainerClassName="map-container"
           options={options}
           onLoad={onLoad}
           onDblClick={handleDblClick}
+          onIdle={onIdle}
         >
           {directions && (
             <DirectionsRenderer
@@ -146,24 +134,13 @@ export default function Map() {
             />
           )}
 
-<GoogleMap
-  mapContainerStyle={{ width: '100%', height: '400px' }}
-  zoom={10}
-  center={{ lat: 37.7749, lng: -122.4194 }}
->
-</GoogleMap>
-
-
           {searchResult && (
             <>
               <Marker
                 position={searchResult}
-                icon="https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
               />
             </>
           )}
-          {/* Maybe you can move the below component into the spots.tsx file 
-          and move that out of the API path and then pass the prop down to that?? */}
           {trailResults && (
             <Spots searchTrailsLoc={searchTrailsLoc} setTrailResults={setTrailResults} trailResults={trailResults}/>
           )}
@@ -173,45 +150,3 @@ export default function Map() {
     </>
   );
 }
-
-const defaultOptions = {
-  strokeOpacity: 0.5,
-  strokeWeight: 2,
-  clickable: false,
-  draggable: false,
-  editable: false,
-  visible: true,
-};
-const closeOptions = {
-  ...defaultOptions,
-  zIndex: 3,
-  fillOpacity: 0.05,
-  strokeColor: "#8BC34A",
-  fillColor: "#8BC34A",
-};
-const middleOptions = {
-  ...defaultOptions,
-  zIndex: 2,
-  fillOpacity: 0.05,
-  strokeColor: "#FBC02D",
-  fillColor: "#FBC02D",
-};
-const farOptions = {
-  ...defaultOptions,
-  zIndex: 1,
-  fillOpacity: 0.05,
-  strokeColor: "#FF5252",
-  fillColor: "#FF5252",
-};
-
-const generateHouses = (position: google.maps.LatLngLiteral) => {
-  const _houses: Array<google.maps.LatLngLiteral> = [];
-  for (let i = 0; i < 10; i++) {
-    const direction = Math.random() < 0.5 ? -2 : 2;
-    _houses.push({
-      lat: position.lat + Math.random() / direction,
-      lng: position.lng + Math.random() / direction,
-    });
-  }
-  return _houses;
-};
