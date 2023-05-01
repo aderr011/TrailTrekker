@@ -10,10 +10,10 @@ import usePlacesAutocomplete, {
     ComboboxOption,
   } from "@reach/combobox";
   import "@reach/combobox/styles.css";
-  import { Place } from "../constants";
+  import { Place } from "../../constants";
   import { useState, useEffect } from "react";
+  import  askGPT  from "../api/spots"
 
-  
   type SearchProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
     setPlaces : (list: Place[]) => void;
@@ -32,10 +32,9 @@ import usePlacesAutocomplete, {
       clearSuggestions,
     } = usePlacesAutocomplete();
 
+    const[ result, setResult] = useState<string>("");
     const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
     useEffect(() => {
-      console.log("HERE IN THE USEEFFECT")
-      console.log(places);
       const placesNoName = places.map((place) => ({
         lat: place.lat,
         lng: place.lng,
@@ -46,12 +45,9 @@ import usePlacesAutocomplete, {
 
 
     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
-      if (placesLocs.length == 0) {
-        console.log("something wrong");
-        return;
-      }
+      if (placesLocs.length < 2) return;
 
-      //must convert into DirectionsWaypoints
+      //Convert into DirectionsWaypoints
       const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
         return {
           location: new google.maps.LatLng(place.lat, place.lng),
@@ -75,21 +71,47 @@ import usePlacesAutocomplete, {
         }
       );
     };
+
+    // async function getCampingSpots (searchPlace: Place) {
+    //   if (!searchPlace) return;
+
+    //   console.log("When sending")
+    //   console.log(searchPlace.name);
+    //   console.log(searchPlace.lat + ", " + searchPlace.lng);
+
+    //   try {
+    //     const response = await fetch("/api/generate", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
+    //     });
+  
+    //     const data = await response.json();
+    //     if (response.status !== 200) {
+    //       throw data.error || new Error(`Request failed with status ${response.status}`);
+    //     }
+  
+    //     console.log(data.result);
+    //   } catch(error:any) {
+    //     // Consider implementing your own error handling logic here
+    //     console.error(error);
+    //     alert(error.message);
+    //   }
+    // }
   
     const handleSelect = async (val: string) => {
-      setValue(val, false);
+      setValue("", false);
       clearSuggestions();
 
       const results = await getGeocode({ address: val });
       const { lat, lng } = await getLatLng(results[0]);
       myPlace = {name: val, lat:lat, lng:lng};
-      //The below set does not seem to be setting the places array because it 
-      //does not call the useEffect. But when you actually go into the list and
-      //change the order of the lists then you actually see the places change
       setPlaces([...places, myPlace]);
-
       setSearchResult({ lat, lng });
-      
+      // console.log("calling openai");
+      // askGPT(myPlace);
     };
   
     return (
