@@ -35,7 +35,6 @@ export default function Map() {
     const map: google.maps.Map | undefined = mapRef.current;
     const mapZoom: number | undefined = mapRef.current?.getZoom();
     const mapBounds: google.maps.LatLngBounds | undefined = mapRef.current?.getBounds();
-    console.log(mapZoom)
 
     if (!map) return;
     if (!mapZoom) return;
@@ -55,10 +54,10 @@ export default function Map() {
       // Load the GeoJSON data
       geoJsonLayer.loadGeoJson(queryString)
       geoJsonLayer.setStyle({
-            strokeColor: '#FF0000',
+            strokeColor: '#066920',
             strokeOpacity: 1.0,
             strokeWeight: 2,
-            fillColor: '#FF0000',
+            fillColor: '#066920',
             fillOpacity: 0.35,
           });
       console.log("Results Populated")
