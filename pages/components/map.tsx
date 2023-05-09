@@ -4,6 +4,7 @@ import {
   Marker,
   DirectionsRenderer,
   InfoBox,
+  InfoWindow,
   Data,
   Circle,
   MarkerClusterer,
@@ -21,8 +22,10 @@ export default function Map() {
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [prevBounds, setPrevBounds] = useState<google.maps.LatLngBounds>();
-  const [selectedTrail, setSelectedTrail] = useState(null);
+  const [selectedTrail, setSelectedTrail] = useState<{name: string; length: string; description: string; system: string; level: string; lanes: string; id: string} | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<any>();
+  const [selectedFeature, setSelectedFeature] = useState<google.maps.Data.Feature>();
+
 
   
 
@@ -95,28 +98,42 @@ export default function Map() {
 
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, bounds]);
-      // setPrevBounds(bounds)
 
       // Load the GeoJSON data
       console.log("Fetching the USFS data")
-      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=IVM_SYMBOL,ID,NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       geoJsonLayer.loadGeoJson(queryString)
       geoJsonLayer.setStyle({
-            strokeColor: '#066920',
-            strokeOpacity: 1.0,
-            strokeWeight: 2,
-            fillColor: '#066920',
-            fillOpacity: 0.35,
-          });
-      geoJsonLayer.addListener("click", (event:any) => {
+        strokeColor: '#066920',
+        strokeOpacity: 0.8,
+        strokeWeight: 3,
+        fillColor: '#066920',
+        fillOpacity: 0.35,
+      });
+      const selectedStyle = {
+        strokeColor: "red",
+        strokeOpacity: 1.0,
+        strokeWeight: 3,
+        fillColor: "red",
+        fillOpacity: 0.5,
+      };
+      
+      geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
+        geoJsonLayer.overrideStyle(event.feature, selectedStyle);
+
         // Get the clicked feature's properties
-        console.log("Clicked!!!!!!!!1")
-        const properties = event.feature.getProperty("NAME")
-        console.log(properties)
-        // Set the selected trail to the clicked feature's properties
-        setSelectedTrail(properties);
-        setSelectedTrailLoc(event.latLng);
+        const name = event.feature.getProperty("NAME")
+        const length = event.feature.getProperty("SEG_LENGTH")
+        const description = event.feature.getProperty("SYMBOL_NAME")
+        const system = event.feature.getProperty("SYSTEM")
+        const level = event.feature.getProperty("OPER_MAINT_LEVEL")
+        const lanes = event.feature.getProperty("LANES")
+        const FSRID = event.feature.getProperty("ID")
         
+        
+        // Set the selected trail to the clicked feature's properties
+        setSelectedTrailLoc(event.latLng);
+        setSelectedTrail({name: name, length: length, description: description, system: system, level: level, lanes: lanes, id: FSRID});
       });
       console.log("Results Populated")
       
@@ -174,18 +191,27 @@ export default function Map() {
               }}
             />
           )}
-          { selectedTrail && (
-            <InfoBox
+          {selectedTrail ? (
+          <InfoWindow
             position={selectedTrailLoc}
-            options={{ closeBoxURL: ``, enableEventPropagation: true }}
+            onCloseClick={() => {
+              setSelectedTrail(undefined);
+            }}
           >
-             <div style={{ backgroundColor: `yellow`, opacity: 0.75, padding: `12px` }}>
-              <h2 style={{ fontSize: `16px`, color: `#08233B` }}>{selectedTrail}</h2>
+            <div>
+              <h2>
+              {selectedTrail.name}
+              </h2>
+              <p>Length: {selectedTrail.length}mi</p>
+              <p>Number of Lanes: {selectedTrail.lanes}</p>
+              <p>System: {selectedTrail.system}</p>
+              <p>Forest Service Road # {selectedTrail.id}</p>
+              <p>Description: {selectedTrail.description}</p>
+              <p>Level: {selectedTrail.level}</p>
+              
             </div>
-            </InfoBox>
-          )
-
-          }
+          </InfoWindow>
+        ) : null}
 
           {searchResult && (
             <>
