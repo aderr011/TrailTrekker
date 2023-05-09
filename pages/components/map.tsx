@@ -43,7 +43,11 @@ export default function Map() {
     []
   );
 
- function areBoundsSearched( bounds: google.maps.LatLngBounds): boolean {
+ 
+
+  function onIdle() {
+
+    function areBoundsSearched( bounds: google.maps.LatLngBounds): boolean {
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
       console.log("Here with the bounds array being this long: " + searchedBounds.length)
@@ -61,16 +65,18 @@ export default function Map() {
       }
       console.log("Stopped search")
       return false;
-  }
-
-  function onIdle() {
+    }
     const map: google.maps.Map | undefined = mapRef.current;
     const mapZoom: number | undefined = mapRef.current?.getZoom();
     const mapBounds: google.maps.LatLngBounds | undefined = mapRef.current?.getBounds();
 
     if (!map) return;
     if (!mapZoom) return;
+    console.log(mapZoom)
     if (!mapBounds) return;
+    console.log("Bounds at IDLE:")
+    const { east, north, south, west } = mapBounds.toJSON(); 
+    console.log(east, north, south, west)
     
     const geoJsonLayer = new google.maps.Data();
 
@@ -87,22 +93,26 @@ export default function Map() {
 
     const loadGeoJsonData = (bounds:google.maps.LatLngBounds) => {
       const { east, north, south, west } = bounds.toJSON(); 
+      console.log(east, north, south, west)
       if ( bounds && searchedBounds.length > 0){
-        console.log("Here")
         if (areBoundsSearched(bounds)) {
           console.log("Bounds already loaded, skipping")
           return;
         }
       }
-      console.log("SEARCH")
 
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, bounds]);
 
       // Load the GeoJSON data
       console.log("Fetching the USFS data")
-      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=IVM_SYMBOL,ID,NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
-      geoJsonLayer.loadGeoJson(queryString)
+
+      // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      
+      const queryString1 = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      const queryString2 = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?outFields=*&where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      console.log(east, north, south, west)
+      geoJsonLayer.loadGeoJson(queryString2)
       geoJsonLayer.setStyle({
         strokeColor: '#066920',
         strokeOpacity: 0.8,
@@ -140,7 +150,8 @@ export default function Map() {
       geoJsonLayer.setMap(map);
     };
 
-    if (mapZoom > 9) {
+    if (mapZoom > 12) {
+      console.log("Aight we going in")
       loadGeoJsonData(mapBounds);
     }
     mapRef.current = map;
