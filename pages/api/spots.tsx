@@ -20,7 +20,6 @@ type SearchProps = {
 export default function Spots({searchTrailsLoc, setTrailResults, trailResults}: SearchProps) {
   async function askGPT(searchLoc: Place) {
     if (!searchLoc) return;
-    // console.log("Key: " +configuration.apiKey);
     if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
   
     const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
