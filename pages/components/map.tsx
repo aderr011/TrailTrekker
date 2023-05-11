@@ -3,21 +3,23 @@ import {
   GoogleMap,
   Marker,
   DirectionsRenderer,
-  Data,
-  Circle,
-  MarkerClusterer,
-  useGoogleMap,
+  InfoWindow,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
 import Spots from "../api/spots";
 import { Place } from "@/constants";
 import askGPT from "../api/spots";
+import { LargeNumberLike } from "crypto";
 
-export default function Map() {
+export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
+  const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
+  const [selectedTrail, setSelectedTrail] = useState<{name: string; length: number; description: string; system: string; level: string; forest: string; dateRange: string, allowedVehicles: string|undefined} | undefined>();
+  const [selectedTrailLoc, setSelectedTrailLoc] = useState<any>();
+
   const mapRef = useRef<google.maps.Map>();
 
   const zoom = useMemo<number>(() => (10),[]);
@@ -39,50 +41,92 @@ export default function Map() {
     if (!map) return;
     if (!mapZoom) return;
     if (!mapBounds) return;
-    
+
     const geoJsonLayer = new google.maps.Data();
 
-    const loadGeoJsonData = (bounds:google.maps.LatLngBounds) => {
-      const { east, north, south, west } = bounds.toJSON();
-      //This code is very inefficient... It queries for data on every move of the map.
-      //I need to optimize this in some way...One possibility could be to store the previous bounds 
-      //This previous query could be checked against the new bounds. 
-      //If the current query's bounds fall within the previous query we do not send it
-      //If the current query's bounds fall 
-      console.log("Fetching the USFS data")
-      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
-      // Load the GeoJSON data
-      geoJsonLayer.loadGeoJson(queryString)
-      geoJsonLayer.setStyle({
-            strokeColor: '#066920',
-            strokeOpacity: 1.0,
-            strokeWeight: 2,
-            fillColor: '#066920',
-            fillOpacity: 0.35,
-          });
-      console.log("Results Populated")
-      // const toMatch = "3 - SUITABLE FOR PASSENGER CARS"
-      // var count = 0;
-      // geoJsonLayer.addListener('addfeature', (evt:any) => {
-      //   if (evt.feature.getProperty('OPER_MAINT_LEL') == toMatch) {
-      //     count++
-      //     var regionCircle = new google.maps.Circle({
-      //       center: evt.feature.getGeometry().get,
-      //       strokeColor: '#FF0000',
-      //       strokeOpacity: 0.8,
-      //       strokeWeight: 2,
-      //       fillColor: '#FF0000',
-      //       fillOpacity: 0.35,
-      //       radius: 500,
-      //       map: map
-      //     });
-      //   }
-      // });
-      geoJsonLayer.setMap(map);
-    };
+    function areBoundsSearched( bounds: google.maps.LatLngBounds): boolean {
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+    
+      //Loop through all bounds and see if the current bounds are not already covered in the previous
+      //Loop from the end to the start of the searchedBounds array because most likely the bound most
+      //recently searched will be contained within the most recently added searchedBounds making this 
+      //loop much more efficient when the searchedBounds list is very long.
 
+      for (let i = 0; i < searchedBounds?.length; i++){
+        const currBounds = searchedBounds[i] 
+        if (currBounds.contains(sw) && currBounds.contains(ne))
+          return true;
+      }
+      return false;
+    }
+    
     if (mapZoom > 9) {
-      loadGeoJsonData(mapBounds);
+      const { east, north, south, west } = mapBounds.toJSON(); 
+
+      if ( mapBounds && searchedBounds.length > 0) {
+        if (areBoundsSearched(mapBounds)) return;
+      }
+
+      //Add current bounds to searchedBounds array
+      setSearchedBounds([...searchedBounds, mapBounds]);
+
+      // const queryString1 = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      // const campgrounds = `https://services.arcgis.com/4OV0eRKiLAYkbH2J/arcgis/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/query?where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      // geoJsonLayer.loadGeoJson(queryString)
+      geoJsonLayer.loadGeoJson(queryString)
+
+      geoJsonLayer.setStyle({
+        strokeColor: '#066920',
+        strokeOpacity: 0.8,
+        strokeWeight: 3,
+        fillColor: '#066920',
+        fillOpacity: 0.35,
+      });
+      const selectedStyle = {
+        strokeColor: "red",
+        strokeOpacity: 1.0,
+        strokeWeight: 3,
+        fillColor: "red",
+        fillOpacity: 0.5,
+      };
+      
+      geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
+        const feature = event.feature;
+        geoJsonLayer.overrideStyle(feature, selectedStyle);
+
+        const name: string = feature.getProperty("NAME")
+        const length: number = Math.round(Number(feature.getProperty("GIS_MILES")))
+        const description: string = feature.getProperty("SBS_SYMBOL_NAME")
+        const system: string = feature.getProperty("JURISDICTION")
+        const level: string = feature.getProperty("OPERATIONALMAINTLEVEL")
+        const dateRange: string = feature.getProperty("PASSENGERVEHICLE_DATESOPEN")
+        const forestName: string = feature.getProperty("FORESTNAME")
+
+        // Check the different vehicles that are allowed on trail
+        let variables = new Map<string, string>([
+          ["Car", feature.getProperty("PASSENGERVEHICLE")],
+          ["Bus", feature.getProperty("BUS")],
+          ["Motorhome", feature.getProperty("MOTORHOME")],
+          ["ATV", feature.getProperty("ATV")],
+          ["Motorcycle", feature.getProperty("MOTORCYCLE")],
+          ["Other OHV vehicles", feature.getProperty("OTHER_OHV_LT50INCHES")]
+        ]);
+
+        let allowedVehicles: string = "not listed";
+        variables.forEach((value, key) => {
+          if (value === "open") {
+            if (allowedVehicles == "not listed") allowedVehicles = key
+            else allowedVehicles = allowedVehicles + ", " + key
+          }
+        });
+
+        // Set the selected trail to the clicked feature's properties
+        setSelectedTrailLoc(event.latLng);
+        setSelectedTrail({name: name, length: length, description: description, system: system, level: level, forest: forestName, dateRange: dateRange, allowedVehicles: allowedVehicles});
+      });
+      geoJsonLayer.setMap(map);
     }
     mapRef.current = map;
   }
@@ -104,10 +148,7 @@ export default function Map() {
     <div className="container">
       <div className="controls">
         <TripPlanner setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
-            setSearchResult(position);    
-            if (position) {
-              mapRef.current?.panTo(position);
-            }        
+            setSearchResult(position);         
           }}/>
       </div>
       <div className="map">
@@ -132,6 +173,27 @@ export default function Map() {
               }}
             />
           )}
+          {selectedTrail ? (
+          <InfoWindow
+            position={selectedTrailLoc}
+            onCloseClick={() => {
+              setSelectedTrail(undefined);
+            }}
+          >
+            <div>
+              <h2>
+              {selectedTrail.name}
+              </h2>
+              <p>Length: {selectedTrail.length}mi</p>
+              <p>Forest: {selectedTrail.forest}</p>
+              <p>System: {selectedTrail.system}</p>
+              <p>Dates Open: {selectedTrail.dateRange}</p>
+              <p>Description: {selectedTrail.description}</p>
+              <p>Level: {selectedTrail.level}</p>
+              <p>Vehicles Allowed: {selectedTrail.allowedVehicles}</p>
+            </div>
+          </InfoWindow>
+        ) : null}
 
           {searchResult && (
             <>
