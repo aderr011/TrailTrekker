@@ -9,14 +9,15 @@ import TripPlanner from "./tripPlanner";
 import Spots from "../api/spots";
 import { Place } from "@/constants";
 import askGPT from "../api/spots";
+import { LargeNumberLike } from "crypto";
 
-export default function Map() {
+export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
-  const [selectedTrail, setSelectedTrail] = useState<{name: string; length: string; description: string; system: string; level: string; lanes: string; id: string} | undefined>();
+  const [selectedTrail, setSelectedTrail] = useState<{name: string; length: number; description: string; system: string; level: string; forest: string; dateRange: string, allowedVehicles: string|undefined} | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<any>();
 
   const mapRef = useRef<google.maps.Map>();
@@ -70,9 +71,12 @@ export default function Map() {
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, mapBounds]);
 
-      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
-      
+      // const queryString1 = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      // const campgrounds = `https://services.arcgis.com/4OV0eRKiLAYkbH2J/arcgis/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/query?where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      // geoJsonLayer.loadGeoJson(queryString)
       geoJsonLayer.loadGeoJson(queryString)
+
       geoJsonLayer.setStyle({
         strokeColor: '#066920',
         strokeOpacity: 0.8,
@@ -89,20 +93,38 @@ export default function Map() {
       };
       
       geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
-        geoJsonLayer.overrideStyle(event.feature, selectedStyle);
+        const feature = event.feature;
+        geoJsonLayer.overrideStyle(feature, selectedStyle);
 
-        const name = event.feature.getProperty("NAME")
-        const length = event.feature.getProperty("SEG_LENGTH")
-        const description = event.feature.getProperty("SYMBOL_NAME")
-        const system = event.feature.getProperty("SYSTEM")
-        const level = event.feature.getProperty("OPER_MAINT_LEVEL")
-        const lanes = event.feature.getProperty("LANES")
-        const FSRID = event.feature.getProperty("ID")
-        
-        
+        const name: string = feature.getProperty("NAME")
+        const length: number = Math.round(Number(feature.getProperty("GIS_MILES")))
+        const description: string = feature.getProperty("SBS_SYMBOL_NAME")
+        const system: string = feature.getProperty("JURISDICTION")
+        const level: string = feature.getProperty("OPERATIONALMAINTLEVEL")
+        const dateRange: string = feature.getProperty("PASSENGERVEHICLE_DATESOPEN")
+        const forestName: string = feature.getProperty("FORESTNAME")
+
+        // Check the different vehicles that are allowed on trail
+        let variables = new Map<string, string>([
+          ["Car", feature.getProperty("PASSENGERVEHICLE")],
+          ["Bus", feature.getProperty("BUS")],
+          ["Motorhome", feature.getProperty("MOTORHOME")],
+          ["ATV", feature.getProperty("ATV")],
+          ["Motorcycle", feature.getProperty("MOTORCYCLE")],
+          ["Other OHV vehicles", feature.getProperty("OTHER_OHV_LT50INCHES")]
+        ]);
+
+        let allowedVehicles: string = "not listed";
+        variables.forEach((value, key) => {
+          if (value === "open") {
+            if (allowedVehicles == "not listed") allowedVehicles = key
+            else allowedVehicles = allowedVehicles + ", " + key
+          }
+        });
+
         // Set the selected trail to the clicked feature's properties
         setSelectedTrailLoc(event.latLng);
-        setSelectedTrail({name: name, length: length, description: description, system: system, level: level, lanes: lanes, id: FSRID});
+        setSelectedTrail({name: name, length: length, description: description, system: system, level: level, forest: forestName, dateRange: dateRange, allowedVehicles: allowedVehicles});
       });
       geoJsonLayer.setMap(map);
     }
@@ -163,11 +185,12 @@ export default function Map() {
               {selectedTrail.name}
               </h2>
               <p>Length: {selectedTrail.length}mi</p>
-              <p>Number of Lanes: {selectedTrail.lanes}</p>
+              <p>Forest: {selectedTrail.forest}</p>
               <p>System: {selectedTrail.system}</p>
-              <p>Forest Service Road # {selectedTrail.id}</p>
+              <p>Dates Open: {selectedTrail.dateRange}</p>
               <p>Description: {selectedTrail.description}</p>
               <p>Level: {selectedTrail.level}</p>
+              <p>Vehicles Allowed: {selectedTrail.allowedVehicles}</p>
             </div>
           </InfoWindow>
         ) : null}
