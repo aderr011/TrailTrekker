@@ -3,12 +3,7 @@ import {
   GoogleMap,
   Marker,
   DirectionsRenderer,
-  InfoBox,
   InfoWindow,
-  Data,
-  Circle,
-  MarkerClusterer,
-  useGoogleMap,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
 import Spots from "../api/spots";
@@ -21,14 +16,8 @@ export default function Map() {
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
-  const [prevBounds, setPrevBounds] = useState<google.maps.LatLngBounds>();
   const [selectedTrail, setSelectedTrail] = useState<{name: string; length: string; description: string; system: string; level: string; lanes: string; id: string} | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<any>();
-  const [selectedFeature, setSelectedFeature] = useState<google.maps.Data.Feature>();
-
-
-  
-
 
   const mapRef = useRef<google.maps.Map>();
 
@@ -43,76 +32,47 @@ export default function Map() {
     []
   );
 
- 
-
   function onIdle() {
-
-    function areBoundsSearched( bounds: google.maps.LatLngBounds): boolean {
-      const sw = bounds.getSouthWest();
-      const ne = bounds.getNorthEast();
-      console.log("Here with the bounds array being this long: " + searchedBounds.length)
-    
-      //Loop through all bounds and see if the current bounds are not already covered in the previous
-      //Loop from the end to the start of the searchedBounds array because most likely the bound most
-      //recently searched will be contained within the most recently added searchedBounds making this 
-      //loop much more efficient when the searchedBounds list is very long.
-
-      console.log("Starting to search")
-      for (let i = 0; i < searchedBounds?.length; i++){
-        const currBounds = searchedBounds[i] 
-        if (currBounds.contains(sw) && currBounds.contains(ne))
-          return true;
-      }
-      console.log("Stopped search")
-      return false;
-    }
     const map: google.maps.Map | undefined = mapRef.current;
     const mapZoom: number | undefined = mapRef.current?.getZoom();
     const mapBounds: google.maps.LatLngBounds | undefined = mapRef.current?.getBounds();
 
     if (!map) return;
     if (!mapZoom) return;
-    console.log(mapZoom)
     if (!mapBounds) return;
-    console.log("Bounds at IDLE:")
-    const { east, north, south, west } = mapBounds.toJSON(); 
-    console.log(east, north, south, west)
-    
+
     const geoJsonLayer = new google.maps.Data();
 
-   
-    function isBoundsContainedWithinOther(bounds1: google.maps.LatLngBounds, bounds2: google.maps.LatLngBounds): boolean {
-      const sw1 = bounds1.getSouthWest();
-      const ne1 = bounds1.getNorthEast();
-      const sw2 = bounds2.getSouthWest();
-      const ne2 = bounds2.getNorthEast();
+    function areBoundsSearched( bounds: google.maps.LatLngBounds): boolean {
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
     
-      // Check if the northeast and southwest corners of bounds1 are contained within bounds2
-      return bounds2.intersects(sw1);
+      //Loop through all bounds and see if the current bounds are not already covered in the previous
+      //Loop from the end to the start of the searchedBounds array because most likely the bound most
+      //recently searched will be contained within the most recently added searchedBounds making this 
+      //loop much more efficient when the searchedBounds list is very long.
+
+      for (let i = 0; i < searchedBounds?.length; i++){
+        const currBounds = searchedBounds[i] 
+        if (currBounds.contains(sw) && currBounds.contains(ne))
+          return true;
+      }
+      return false;
     }
 
     const loadGeoJsonData = (bounds:google.maps.LatLngBounds) => {
       const { east, north, south, west } = bounds.toJSON(); 
-      console.log(east, north, south, west)
-      if ( bounds && searchedBounds.length > 0){
-        if (areBoundsSearched(bounds)) {
-          console.log("Bounds already loaded, skipping")
-          return;
-        }
+
+      if ( bounds && searchedBounds.length > 0) {
+        if (areBoundsSearched(bounds)) return;
       }
 
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, bounds]);
 
-      // Load the GeoJSON data
-      console.log("Fetching the USFS data")
-
-      // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       
-      const queryString1 = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,SYMBOL_NAME&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
-      const queryString2 = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?outFields=*&where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
-      console.log(east, north, south, west)
-      geoJsonLayer.loadGeoJson(queryString2)
+      geoJsonLayer.loadGeoJson(queryString)
       geoJsonLayer.setStyle({
         strokeColor: '#066920',
         strokeOpacity: 0.8,
@@ -145,13 +105,11 @@ export default function Map() {
         setSelectedTrailLoc(event.latLng);
         setSelectedTrail({name: name, length: length, description: description, system: system, level: level, lanes: lanes, id: FSRID});
       });
-      console.log("Results Populated")
       
       geoJsonLayer.setMap(map);
     };
 
-    if (mapZoom > 12) {
-      console.log("Aight we going in")
+    if (mapZoom > 9) {
       loadGeoJsonData(mapBounds);
     }
     mapRef.current = map;
