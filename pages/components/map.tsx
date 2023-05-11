@@ -59,16 +59,16 @@ export default function Map() {
       }
       return false;
     }
+    
+    if (mapZoom > 9) {
+      const { east, north, south, west } = mapBounds.toJSON(); 
 
-    const loadGeoJsonData = (bounds:google.maps.LatLngBounds) => {
-      const { east, north, south, west } = bounds.toJSON(); 
-
-      if ( bounds && searchedBounds.length > 0) {
-        if (areBoundsSearched(bounds)) return;
+      if ( mapBounds && searchedBounds.length > 0) {
+        if (areBoundsSearched(mapBounds)) return;
       }
 
       //Add current bounds to searchedBounds array
-      setSearchedBounds([...searchedBounds, bounds]);
+      setSearchedBounds([...searchedBounds, mapBounds]);
 
       const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       
@@ -91,7 +91,6 @@ export default function Map() {
       geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
         geoJsonLayer.overrideStyle(event.feature, selectedStyle);
 
-        // Get the clicked feature's properties
         const name = event.feature.getProperty("NAME")
         const length = event.feature.getProperty("SEG_LENGTH")
         const description = event.feature.getProperty("SYMBOL_NAME")
@@ -105,12 +104,7 @@ export default function Map() {
         setSelectedTrailLoc(event.latLng);
         setSelectedTrail({name: name, length: length, description: description, system: system, level: level, lanes: lanes, id: FSRID});
       });
-      
       geoJsonLayer.setMap(map);
-    };
-
-    if (mapZoom > 9) {
-      loadGeoJsonData(mapBounds);
     }
     mapRef.current = map;
   }
