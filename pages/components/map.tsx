@@ -126,10 +126,7 @@ export default function Map() {
     <div className="container">
       <div className="controls">
         <TripPlanner setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
-            setSearchResult(position);    
-            // if (position) {
-            //   mapRef.current?.panTo(position);
-            // }        
+            setSearchResult(position);         
           }}/>
       </div>
       <div className="map">
@@ -171,7 +168,6 @@ export default function Map() {
               <p>Forest Service Road # {selectedTrail.id}</p>
               <p>Description: {selectedTrail.description}</p>
               <p>Level: {selectedTrail.level}</p>
-              
             </div>
           </InfoWindow>
         ) : null}
