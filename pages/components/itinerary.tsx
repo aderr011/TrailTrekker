@@ -10,6 +10,7 @@ import {
 	ListItemAvatar,
 	ListItemButton,
 	ListItemIcon,
+  TextField,
 	ListItemText,
   IconButton,
   
@@ -17,7 +18,8 @@ import {
 } from "@mui/material";
 
 
-import {GrClose} from "react-icons/gr";
+import {TfiTrash} from "react-icons/tfi";
+import { AnyAaaaRecord } from 'dns';
 
 type ItineraryProps = {
   places: (Place[]);
@@ -36,12 +38,11 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
     setPlaces(items);
   }
 
-  const removePlace = (index) => {
-    setPlaces((prevList:Place[]) => {
-      const newList = [...prevList];
-      newList.splice(index, 1);
-      return newList;
-    });
+  const removePlace = (index:any) => {
+    console.log(index)
+    const updatedArray = [...places]; 
+    updatedArray.splice(index, 1); 
+    setPlaces(updatedArray); 
   };
 
   return (
@@ -71,11 +72,15 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
                           <ListItem
                             secondaryAction={
                               <IconButton edge="end" aria-label="delete">
-                                <GrClose onClick={()=>{[...places].slice(indexNum,1)}}/>
+                                <TfiTrash onClick={() => removePlace(indexNum)}/>
                               </IconButton>
                             }
                           >
-                            <ListItemText primary={name} secondary={"(" + lat + ", " + lng + ")"}/>
+                            <TextField 
+                            value={name}
+                            fullWidth
+                            />
+                            {/* <ListItemText primary={name.substring(0,name.indexOf(",")).trim()} secondary={name.substring(name.indexOf(",")+1).trim()}/> */}
                           </ListItem>
                         </Paper>
                       )}
