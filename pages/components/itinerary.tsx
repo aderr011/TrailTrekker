@@ -90,11 +90,14 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
     console.log(event.target.value)
     setValue(event.target.value)
   };
+  const [sidebar, setSidebar] = useState(false);
+
 
   return (
     <div>
+      <h2 className="itinerary-header">Itinerary</h2>
       <header>
-        <h2 className="itinerary-header">Itinerary</h2>
+        
         <DragDropContext onDragEnd={handleOnDragEnd}>
           <Droppable droppableId="characters">
             {(provided) => (

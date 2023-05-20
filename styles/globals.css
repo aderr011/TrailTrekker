@@ -29,14 +29,17 @@ a {
 }
 .planner-text {
   position:relative;
-  top: -1vh;
-  left: 27%;
+  text-align: center;
   color: #fff;
 }
 .itinerary-header {
   position:relative;
-  /* top: -1vh; */
-  left: 35%;
+  /* top: 60vh; */
+
+  /* top: 50vh; */
+  text-align: center;
+  left: 1000px;
+  /* border: 10px; */
   color: #fff;
 }
 
@@ -75,4 +78,21 @@ a {
 .combobox-input {
   width: 100%;
   padding: 0.5rem;
+}
+
+.nav-menu {
+  background-color: #060b26;
+  width: 250px;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: -100%;
+  transition: 850ms;
+}
+
+.nav-menu.active {
+  left: 0;
+  transition: 350ms;
 }

@@ -139,6 +139,7 @@ export default function GMap() {
     if (!e.latLng) return;
     setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
+  const [sidebar, setSidebar] = useState(false);
 
   return (
     <>
@@ -146,7 +147,7 @@ export default function GMap() {
         <h1 className="header-text">TrailTrekker</h1>
     </div>
     <div className="container">
-      <div className="controls">
+      <div className="nav-menu">
         <TripPlanner setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
             setSearchResult(position);         
           }}/>
