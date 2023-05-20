@@ -13,9 +13,24 @@ import {
   TextField,
 	ListItemText,
   IconButton,
-  
+  MenuItem,
+  Select,
 	Paper,
+  Menu,
 } from "@mui/material";
+
+import usePlacesAutocomplete, {
+  getGeocode,
+  getLatLng,
+} from "use-places-autocomplete";
+
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxPopover,
+  ComboboxList,
+  ComboboxOption,
+} from "@reach/combobox";
 
 
 import {TfiTrash} from "react-icons/tfi";
@@ -24,9 +39,11 @@ import { AnyAaaaRecord } from 'dns';
 type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
+  setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
+
 };
 
-export default function Itinerary({ places, setPlaces }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces, setSearchResult }: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
@@ -43,6 +60,35 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
     const updatedArray = [...places]; 
     updatedArray.splice(index, 1); 
     setPlaces(updatedArray); 
+  };
+  const {
+    ready,
+    value,
+    setValue,
+    suggestions: { status, data },
+    clearSuggestions,
+  } = usePlacesAutocomplete();
+
+  const handleSelect = async (index: number, val: string) => {
+    setValue(val, false);
+    clearSuggestions();
+
+    const results = await getGeocode({ address: val });
+    const { lat, lng } = await getLatLng(results[0]);
+    var myPlace : Place = {name: val, lat:lat, lng:lng};
+    setPlaces([...places, myPlace]);
+
+    //NEED TO FIGIRE THIS OUT!!!!!!
+    // const updatedArray = [...places];
+    // updatedArray[index] = val;
+    // setSearchResult({ lat, lng });
+    // console.log("calling openai");
+    // askGPT(myPlace);
+  };
+
+  const handleChange = (event:any) => {
+    console.log(event.target.value)
+    setValue(event.target.value)
   };
 
   return (
@@ -76,9 +122,42 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
                               </IconButton>
                             }
                           >
+                          {/* <TextField
+                            value={name}
+                            onChange={handleChange}
+                          >
+                            {status === "OK" &&
+                                    data.map(({ place_id, description }) => (
+                                      <MenuItem key={place_id} value={description} />
+                                    ))}
+                          </TextField> */}
+
+
+
+                          
+
+
+                            {/* <Combobox onSelect={handleSelect(indexNum, value)}>
+                              <ComboboxInput
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                disabled={!ready}
+                                className="combobox-input"
+                                placeholder="Search Location"
+                              />
+                              <ComboboxPopover>
+                                <ComboboxList>
+                                  {status === "OK" &&
+                                    data.map(({ place_id, description }) => (
+                                      <ComboboxOption key={place_id} value={description} />
+                                    ))}
+                                </ComboboxList>
+                              </ComboboxPopover>
+                            </Combobox> */}
                             <TextField 
                             value={name}
                             fullWidth
+                            variant="outlined" 
                             />
                             {/* <ListItemText primary={name.substring(0,name.indexOf(",")).trim()} secondary={name.substring(name.indexOf(",")+1).trim()}/> */}
                           </ListItem>
