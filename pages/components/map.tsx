@@ -10,6 +10,7 @@ import Spots from "../api/spots";
 import { Place } from "@/constants";
 import askGPT from "../api/spots";
 import { LargeNumberLike } from "crypto";
+import * as FaIcons from 'react-icons/fa';
 
 export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
@@ -139,20 +140,24 @@ export default function GMap() {
     if (!e.latLng) return;
     setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
-  const [sidebar, setSidebar] = useState(false);
+  const [sidebar, setSidebar] = useState(true);
+
+  const showSidebar = () => setSidebar(!sidebar);
 
   return (
     <>
     <div className="header">
         <h1 className="header-text">TrailTrekker</h1>
+        <FaIcons.FaBars color="white" size="20px" onClick={showSidebar} />
     </div>
+    
     <div className="container">
-      <div className="nav-menu">
+      <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
         <TripPlanner setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
             setSearchResult(position);         
           }}/>
       </div>
-      <div className="map">
+      {/* <div className="map"> */}
         <GoogleMap
           zoom={zoom}
           center={center}
@@ -207,7 +212,7 @@ export default function GMap() {
             <Spots searchTrailsLoc={searchTrailsLoc} setTrailResults={setTrailResults} trailResults={trailResults}/>
           )}
         </GoogleMap>
-      </div>
+      {/* </div> */}
     </div>
     </>
   );

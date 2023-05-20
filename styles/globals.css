@@ -31,14 +31,15 @@ a {
   position:relative;
   text-align: center;
   color: #fff;
+  /* display:flex; */
 }
 .itinerary-header {
   position:relative;
   /* top: 60vh; */
-
+/* display:flex; */
   /* top: 50vh; */
   text-align: center;
-  left: 1000px;
+  /* left: 1000px; */
   /* border: 10px; */
   color: #fff;
 }
@@ -82,14 +83,26 @@ a {
 
 .nav-menu {
   background-color: #060b26;
-  width: 250px;
   height: 100vh;
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   position: fixed;
-  top: 0;
+  top: 5vh;
   left: -100%;
   transition: 850ms;
+  z-index: 99999;
+  width: 30%;
+  height: 95vh;
+  padding: 1rem;
+  background: #14161a;
+  color: #fff;
+}
+.navbar {
+  background-color: #060b26;
+  height: 80px;
+  display: flex;
+  justify-content: start;
+  align-items: center;
 }
 
 .nav-menu.active {

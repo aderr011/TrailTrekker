@@ -115,6 +115,7 @@ import usePlacesAutocomplete, {
     };
   
     return (
+      <div>
       <Combobox onSelect={handleSelect}>
         <ComboboxInput
           value={value}
@@ -132,6 +133,7 @@ import usePlacesAutocomplete, {
           </ComboboxList>
         </ComboboxPopover>
       </Combobox>
+      </div>
     );
   }
   
