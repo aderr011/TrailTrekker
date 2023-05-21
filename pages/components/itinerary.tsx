@@ -95,8 +95,6 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
   return (
     <div>
       <h2 className="itinerary-header">Itinerary</h2>
-      <header>
-        
         <DragDropContext onDragEnd={handleOnDragEnd}>
           <Droppable droppableId="characters">
             {(provided) => (
@@ -123,42 +121,10 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
                               </IconButton>
                             }
                           >
-                          {/* <TextField
-                            value={name}
-                            onChange={handleChange}
-                          >
-                            {status === "OK" &&
-                                    data.map(({ place_id, description }) => (
-                                      <MenuItem key={place_id} value={description} />
-                                    ))}
-                          </TextField> */}
-
-
-
-                          
-
-
-                            {/* <Combobox onSelect={handleSelect(indexNum, value)}>
-                              <ComboboxInput
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                disabled={!ready}
-                                className="combobox-input"
-                                placeholder="Search Location"
-                              />
-                              <ComboboxPopover>
-                                <ComboboxList>
-                                  {status === "OK" &&
-                                    data.map(({ place_id, description }) => (
-                                      <ComboboxOption key={place_id} value={description} />
-                                    ))}
-                                </ComboboxList>
-                              </ComboboxPopover>
-                            </Combobox> */}
                             <TextField 
-                            value={name}
-                            fullWidth
-                            variant="outlined" 
+                              value={name}
+                              fullWidth
+                              variant="outlined" 
                             />
                             {/* <ListItemText primary={name.substring(0,name.indexOf(",")).trim()} secondary={name.substring(name.indexOf(",")+1).trim()}/> */}
                           </ListItem>
@@ -172,7 +138,6 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
             )}
           </Droppable>
         </DragDropContext>
-      </header>
     </div>
   );
 }
