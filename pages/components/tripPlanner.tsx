@@ -3,13 +3,6 @@ import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
   } from "use-places-autocomplete";
-  import {
-    GoogleMap,
-    Marker,
-    DirectionsRenderer,
-    Circle,
-    MarkerClusterer,
-  } from "@react-google-maps/api";
 
   import "@reach/combobox/styles.css";
   import Search from "./Search";

@@ -1,23 +1,14 @@
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useState, useEffect } from "react";
 import { Place } from "../../constants";
-import {RxHamburgerMenu} from "react-icons/Rx";
 import MenuIcon from '@mui/icons-material/Menu';
 import {
-	Avatar,
-	Container,
 	List,
 	ListItem,
-	ListItemAvatar,
-	ListItemButton,
 	ListItemIcon,
   TextField,
-	ListItemText,
   IconButton,
-  MenuItem,
-  Select,
-	Paper,
-  Menu,
+	Paper
 } from "@mui/material";
 
 import usePlacesAutocomplete, {
@@ -49,6 +40,7 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
     updatedArray.splice(index, 1); 
     setPlaces(updatedArray); 
   };
+
   const {
     ready,
     value,
@@ -57,29 +49,11 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
     clearSuggestions,
   } = usePlacesAutocomplete();
 
-  const handleSelect = async (index: number, val: string) => {
-    setValue(val, false);
-    clearSuggestions();
-
-    const results = await getGeocode({ address: val });
-    const { lat, lng } = await getLatLng(results[0]);
-    var myPlace : Place = {name: val, lat:lat, lng:lng};
-    setPlaces([...places, myPlace]);
-
-    //NEED TO FIGIRE THIS OUT!!!!!!
-    // const updatedArray = [...places];
-    // updatedArray[index] = val;
-    // setSearchResult({ lat, lng });
-    // console.log("calling openai");
-    // askGPT(myPlace);
-  };
-
   const handleChange = (event:any) => {
     console.log(event.target.value)
     setValue(event.target.value)
   };
-  const [sidebar, setSidebar] = useState(false);
-
+  
   return (
     <div>
       <h2 className="itinerary-header">Itinerary</h2>

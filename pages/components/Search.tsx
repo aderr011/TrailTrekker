@@ -34,6 +34,7 @@ import usePlacesAutocomplete, {
 
     const[ result, setResult] = useState<string>("");
     const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
+   
     useEffect(() => {
       const placesNoName = places.map((place) => ({
         lat: place.lat,

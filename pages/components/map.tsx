@@ -15,6 +15,7 @@ import * as FaIcons from 'react-icons/fa';
 export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   const [directions, setDirections] = useState<google.maps.DirectionsResult>();
+  // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
@@ -201,7 +202,7 @@ export default function GMap() {
           </InfoWindow>
         ) : null}
 
-          {searchResult && (
+          {(searchResult && !directions) && (
             <>
               <Marker
                 position={searchResult}
