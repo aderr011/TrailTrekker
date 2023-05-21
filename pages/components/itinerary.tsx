@@ -89,7 +89,7 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
               <List 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", maxWidth: 400 }}
+                  sx={{ width: "100%", maxWidth: 400, maxHeight: "63vh", overflow: 'auto' }}
               >
                 {places.map(({name, lat, lng}, indexNum) => {
                   return (
