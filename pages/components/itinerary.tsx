@@ -1,7 +1,8 @@
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useState, useEffect } from "react";
 import { Place } from "../../constants";
-
+import {RxHamburgerMenu} from "react-icons/Rx";
+import MenuIcon from '@mui/icons-material/Menu';
 import {
 	Avatar,
 	Container,
@@ -24,18 +25,7 @@ import usePlacesAutocomplete, {
   getLatLng,
 } from "use-places-autocomplete";
 
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxPopover,
-  ComboboxList,
-  ComboboxOption,
-} from "@reach/combobox";
-
-
 import {TfiTrash} from "react-icons/tfi";
-import { AnyAaaaRecord } from 'dns';
-
 type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
@@ -121,6 +111,10 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
                               </IconButton>
                             }
                           >
+                            <ListItemIcon>
+                              <MenuIcon/>
+                            </ListItemIcon>
+                            
                             <TextField 
                               value={name}
                               fullWidth
