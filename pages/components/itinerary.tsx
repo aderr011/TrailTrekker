@@ -20,9 +20,11 @@ import {TfiTrash} from "react-icons/tfi";
 type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
+  setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
+  setDirections: (result: google.maps.DirectionsResult | undefined) => void;
 };
 
-export default function Itinerary({ places, setPlaces }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces, setSearchResult, setDirections }: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
@@ -35,10 +37,14 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
   }
 
   const removePlace = (index:any) => {
-    console.log(index)
     const updatedArray = [...places]; 
     updatedArray.splice(index, 1); 
     setPlaces(updatedArray); 
+    if (places.length == 2) {
+      const coords:google.maps.LatLngLiteral = {lat: updatedArray[0].lat, lng: updatedArray[0].lng}
+      setSearchResult(coords)
+      setDirections(undefined)
+    }
   };
 
   const {
@@ -53,7 +59,7 @@ export default function Itinerary({ places, setPlaces }: ItineraryProps) {
     console.log(event.target.value)
     setValue(event.target.value)
   };
-  
+
   return (
     <div>
       <h2 className="itinerary-header">Itinerary</h2>
