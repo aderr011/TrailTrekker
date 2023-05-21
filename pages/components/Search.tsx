@@ -115,16 +115,21 @@ import usePlacesAutocomplete, {
     };
   
     return (
-      <div>
       <Combobox onSelect={handleSelect}>
         <ComboboxInput
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            console.log(e.target.value);
+            setValue(e.target.value);
+            console.log(data);
+          }
+          }
+
           disabled={!ready}
           className="combobox-input"
           placeholder="Search Location"
         />
-        <ComboboxPopover>
+        <ComboboxPopover style={{zIndex:999999}}>
           <ComboboxList>
             {status === "OK" &&
               data.map(({ place_id, description }) => (
@@ -133,7 +138,6 @@ import usePlacesAutocomplete, {
           </ComboboxList>
         </ComboboxPopover>
       </Combobox>
-      </div>
     );
   }
   
