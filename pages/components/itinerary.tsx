@@ -92,7 +92,6 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
   };
   const [sidebar, setSidebar] = useState(false);
 
-
   return (
     <div>
       <h2 className="itinerary-header">Itinerary</h2>
@@ -102,10 +101,9 @@ export default function Itinerary({ places, setPlaces, setSearchResult }: Itiner
           <Droppable droppableId="characters">
             {(provided) => (
               <List 
-                  className="characters" 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", maxWidth: 360 }}
+                  sx={{ width: "100%", maxWidth: 400 }}
               >
                 {places.map(({name, lat, lng}, indexNum) => {
                   return (

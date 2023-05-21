@@ -11,6 +11,7 @@
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.13.0",
+    "@mui/styles": "^5.13.1",
     "@reach/combobox": "^0.16.5",
     "@react-google-maps/api": "^2.7.0",
     "@types/react-beautiful-dnd": "^13.1.4",
