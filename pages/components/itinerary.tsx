@@ -29,11 +29,9 @@ import {TfiTrash} from "react-icons/tfi";
 type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
-  setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-
 };
 
-export default function Itinerary({ places, setPlaces, setSearchResult }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces }: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
