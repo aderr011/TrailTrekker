@@ -68,6 +68,7 @@ import usePlacesAutocomplete, {
             console.log("We set the directions with: ");
             console.log(placesLocs);
             setDirections(result);
+            setSearchResult(undefined);
           }
         }
       );
@@ -110,6 +111,8 @@ import usePlacesAutocomplete, {
       const { lat, lng } = await getLatLng(results[0]);
       myPlace = {name: val, lat:lat, lng:lng};
       setPlaces([...places, myPlace]);
+      console.log(typeof({lat,lng}))
+      console.log({lat,lng})
       setSearchResult({ lat, lng });
       // console.log("calling openai");
       // askGPT(myPlace);
@@ -120,9 +123,7 @@ import usePlacesAutocomplete, {
         <ComboboxInput
           value={value}
           onChange={(e) => {
-            console.log(e.target.value);
             setValue(e.target.value);
-            console.log(data);
           }
           }
 

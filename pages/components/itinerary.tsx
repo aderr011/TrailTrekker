@@ -11,11 +11,6 @@ import {
 	Paper
 } from "@mui/material";
 
-import usePlacesAutocomplete, {
-  getGeocode,
-  getLatLng,
-} from "use-places-autocomplete";
-
 import {TfiTrash} from "react-icons/tfi";
 type ItineraryProps = {
   places: (Place[]);
@@ -41,23 +36,14 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
     updatedArray.splice(index, 1); 
     setPlaces(updatedArray); 
     if (places.length == 2) {
-      const coords:google.maps.LatLngLiteral = {lat: updatedArray[0].lat, lng: updatedArray[0].lng}
+      const coords:any = { lat: updatedArray[0].lat, lng: updatedArray[0].lng}
       setSearchResult(coords)
       setDirections(undefined)
     }
-  };
-
-  const {
-    ready,
-    value,
-    setValue,
-    suggestions: { status, data },
-    clearSuggestions,
-  } = usePlacesAutocomplete();
-
-  const handleChange = (event:any) => {
-    console.log(event.target.value)
-    setValue(event.target.value)
+    if (places.length == 1) {
+      setSearchResult(undefined)
+      setDirections(undefined)
+    }
   };
 
   return (
@@ -69,7 +55,7 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
               <List 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", maxWidth: 400, maxHeight: "63vh", overflow: 'auto' }}
+                  sx={{ width: "100%", maxWidth: 400, maxHeight: "70vh", overflow: 'auto' }}
               >
                 {places.map(({name, lat, lng}, indexNum) => {
                   return (
