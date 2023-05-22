@@ -34,6 +34,7 @@ import usePlacesAutocomplete, {
 
     const[ result, setResult] = useState<string>("");
     const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
+   
     useEffect(() => {
       const placesNoName = places.map((place) => ({
         lat: place.lat,
@@ -67,6 +68,7 @@ import usePlacesAutocomplete, {
             console.log("We set the directions with: ");
             console.log(placesLocs);
             setDirections(result);
+            setSearchResult(undefined);
           }
         }
       );
@@ -109,6 +111,8 @@ import usePlacesAutocomplete, {
       const { lat, lng } = await getLatLng(results[0]);
       myPlace = {name: val, lat:lat, lng:lng};
       setPlaces([...places, myPlace]);
+      console.log(typeof({lat,lng}))
+      console.log({lat,lng})
       setSearchResult({ lat, lng });
       // console.log("calling openai");
       // askGPT(myPlace);
@@ -118,12 +122,16 @@ import usePlacesAutocomplete, {
       <Combobox onSelect={handleSelect}>
         <ComboboxInput
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+          }
+          }
+
           disabled={!ready}
           className="combobox-input"
           placeholder="Search Location"
         />
-        <ComboboxPopover>
+        <ComboboxPopover style={{zIndex:999999}}>
           <ComboboxList>
             {status === "OK" &&
               data.map(({ place_id, description }) => (
