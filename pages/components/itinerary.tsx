@@ -8,7 +8,9 @@ import {
 	ListItemIcon,
   TextField,
   IconButton,
-	Paper
+	Paper,
+  Divider,
+  ListItemText
 } from "@mui/material";
 
 import {TfiTrash} from "react-icons/tfi";
@@ -61,6 +63,7 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                   return (
                     <Draggable key={name} draggableId={name} index={indexNum}>
                       {(provided) => (
+                        <>
                         <Paper
                             ref={provided.innerRef} 
                             {...provided.draggableProps} 
@@ -69,6 +72,7 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                             sx={{ marginBottom: "10px" }}
                         >
                           <ListItem
+                            sx={{backgroundColor: 'transparent', '&:hover': { backgroundColor: 'transparent' }}}
                             secondaryAction={
                               <IconButton edge="end" aria-label="delete">
                                 <TfiTrash onClick={() => removePlace(indexNum)}/>
@@ -86,7 +90,12 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                             />
                             {/* <ListItemText primary={name.substring(0,name.indexOf(",")).trim()} secondary={name.substring(name.indexOf(",")+1).trim()}/> */}
                           </ListItem>
+                          
                         </Paper>
+                        <Divider variant="middle">
+                        <ListItemText primary={"location.distance"} sx={{color: 'white'}}/>
+                      </Divider>
+                      </>
                       )}
                     </Draggable>
                   );

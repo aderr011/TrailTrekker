@@ -67,6 +67,8 @@ import usePlacesAutocomplete, {
           if (status === "OK" && result) {
             console.log("We set the directions with: ");
             console.log(placesLocs);
+            console.log("The directions renderer")
+            console.log(result)
             setDirections(result);
             setSearchResult(undefined);
           }
