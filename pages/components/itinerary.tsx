@@ -19,12 +19,12 @@ type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-  directions: (google.maps.DirectionsResult | undefined);
+  // directions: (google.maps.DirectionsResult | undefined);
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
-  routeFound: (boolean | undefined);
+  routeData: (google.maps.DirectionsLeg[] | undefined);
 };
 
-export default function Itinerary({ places, setPlaces, setSearchResult, directions, setDirections, routeFound }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces, setSearchResult, setDirections, routeData}: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
@@ -86,9 +86,9 @@ export default function Itinerary({ places, setPlaces, setSearchResult, directio
                           
 
 
-                          {(indexNum>0 && (directions?.routes[0].legs.length === places.length-1)) && (
+                          {(indexNum>0 && routeData && places.length-1 === routeData.length) && (
                             <>
-                              <ListItemText secondary={directions?.routes[0].legs[indexNum-1].duration} sx={{position: 'relative', textAlign: 'center', top: '4px', padding: '3px'}}  />
+                              <ListItemText secondary={routeData[indexNum-1].duration?.text} sx={{position: 'relative', textAlign: 'center', top: '4px', padding: '3px'}}  />
                               <Divider variant='fullWidth'/>
                             </>
                           )}

@@ -1,155 +1,303 @@
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-  } from "use-places-autocomplete";
-  import {
-    Combobox,
-    ComboboxInput,
-    ComboboxPopover,
-    ComboboxList,
-    ComboboxOption,
-  } from "@reach/combobox";
-  import "@reach/combobox/styles.css";
-  import { Place } from "../../constants";
-  import { useState, useEffect } from "react";
-  import  askGPT  from "../api/spots"
+// import usePlacesAutocomplete, {
+//     getGeocode,
+//     getLatLng,
+//   } from "use-places-autocomplete";
+//   import {
+//     Combobox,
+//     ComboboxInput,
+//     ComboboxPopover,
+//     ComboboxList,
+//     ComboboxOption,
+//   } from "@reach/combobox";
+//   import "@reach/combobox/styles.css";
+//   import { Place } from "../../constants";
+//   import { useState, useEffect } from "react";
+//   import  askGPT  from "../api/spots"
 
-  type SearchProps = {
-    setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-    setPlaces : (list: Place[]) => void;
-    places : (Place[]);
-    searchResult: (google.maps.LatLngLiteral | undefined);
-    setDirections: (result: google.maps.DirectionsResult | undefined) => void;
-    // setRouteFound: (tf: boolean | undefined) => void;
-  };
+//   type SearchProps = {
+//     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
+//     setPlaces : (list: Place[]) => void;
+//     places : (Place[]);
+//     searchResult: (google.maps.LatLngLiteral | undefined);
+//     setDirections: (result: google.maps.DirectionsResult | undefined) => void;
+//     // setRouteFound: (tf: boolean | undefined) => void;
+//   };
   
-  export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections }: SearchProps) {
-    var myPlace : Place;
-    const {
-      ready,
-      value,
-      setValue,
-      suggestions: { status, data },
-      clearSuggestions,
-    } = usePlacesAutocomplete();
+//   export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections }: SearchProps) {
+//     var myPlace : Place;
+//     const {
+//       ready,
+//       value,
+//       setValue,
+//       suggestions: { status, data },
+//       clearSuggestions,
+//     } = usePlacesAutocomplete();
 
-    const[ result, setResult] = useState<string>("");
-    const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
+//     const[ result, setResult] = useState<string>("");
+//     const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
    
-    useEffect(() => {
-      const placesNoName = places.map((place) => ({
-        lat: place.lat,
-        lng: place.lng,
-      }));
-      setPlacesLatLng(placesNoName);
-      fetchDirections(placesNoName);
-    }, [places]);
+//     useEffect(() => {
+//       const placesNoName = places.map((place) => ({
+//         lat: place.lat,
+//         lng: place.lng,
+//       }));
+//       setPlacesLatLng(placesNoName);
+//       fetchDirections(placesNoName);
+//     }, [places]);
 
 
-    const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
+//     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
       
-      if (placesLocs.length < 2) return;
+//       if (placesLocs.length < 2) return;
 
-      //Convert into DirectionsWaypoints
-      const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
-        return {
-          location: new google.maps.LatLng(place.lat, place.lng),
-        };
-      });
+//       //Convert into DirectionsWaypoints
+//       const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
+//         return {
+//           location: new google.maps.LatLng(place.lat, place.lng),
+//         };
+//       });
   
-      const service = new google.maps.DirectionsService();
-      service.route(
-        {
-          origin: placesLocs[0],
-          destination: placesLocs[placesLocs.length-1],
-          waypoints: inBetweenPlaces,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === "OK" && result) {
-            console.log("We set the directions with: ");
-            console.log(placesLocs);
-            console.log("The directions renderer")
-            console.log(result)
-            console.log("And another thing: ")
-            console.log(result?.routes[0].legs)
-            setDirections(result);
+//       const service = new google.maps.DirectionsService();
+//       service.route(
+//         {
+//           origin: placesLocs[0],
+//           destination: placesLocs[placesLocs.length-1],
+//           waypoints: inBetweenPlaces,
+//           travelMode: google.maps.TravelMode.DRIVING,
+//         },
+//         (result, status) => {
+//           if (status === "OK" && result) {
+//             console.log("We set the directions with: ");
+//             console.log(placesLocs);
+//             console.log("The directions renderer")
+//             console.log(result)
+//             console.log("And another thing: ")
+//             console.log(result?.routes[0].legs)
+//             setDirections(result);
 
-            setSearchResult(undefined);
-          }
+//             setSearchResult(undefined);
+//           }
+//         }
+//       );
+//       // setDirectionsFound(true);
+//     };
+
+//     // async function getCampingSpots (searchPlace: Place) {
+//     //   if (!searchPlace) return;
+
+//     //   console.log("When sending")
+//     //   console.log(searchPlace.name);
+//     //   console.log(searchPlace.lat + ", " + searchPlace.lng);
+
+//     //   try {
+//     //     const response = await fetch("/api/generate", {
+//     //       method: "POST",
+//     //       headers: {
+//     //         "Content-Type": "application/json",
+//     //       },
+//     //       body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
+//     //     });
+  
+//     //     const data = await response.json();
+//     //     if (response.status !== 200) {
+//     //       throw data.error || new Error(`Request failed with status ${response.status}`);
+//     //     }
+  
+//     //     console.log(data.result);
+//     //   } catch(error:any) {
+//     //     // Consider implementing your own error handling logic here
+//     //     console.error(error);
+//     //     alert(error.message);
+//     //   }
+//     // }
+  
+//     const handleSelect = async (val: string) => {
+//       // setDirections(undefined)
+//       // setRouteFound(false)
+//       setValue("", false);
+//       clearSuggestions();
+
+//       const results = await getGeocode({ address: val });
+//       const { lat, lng } = await getLatLng(results[0]);
+//       myPlace = {name: val, lat:lat, lng:lng};
+//       setPlaces([...places, myPlace]);
+//       console.log(typeof({lat,lng}))
+//       console.log({lat,lng})
+//       setSearchResult({ lat, lng });
+//       // console.log("calling openai");
+//       // askGPT(myPlace);
+//     };
+  
+//     return (
+//       <Combobox onSelect={handleSelect}>
+//         <ComboboxInput
+//           value={value}
+//           onChange={(e) => {
+//             setValue(e.target.value);
+//           }
+//           }
+
+//           disabled={!ready}
+//           className="combobox-input"
+//           placeholder="Search Location"
+//         />
+//         <ComboboxPopover style={{zIndex:999999}}>
+//           <ComboboxList>
+//             {status === "OK" &&
+//               data.map(({ place_id, description }) => (
+//                 <ComboboxOption key={place_id} value={description} />
+//               ))}
+//           </ComboboxList>
+//         </ComboboxPopover>
+//       </Combobox>
+//     );
+//   }
+  
+
+
+import usePlacesAutocomplete, {
+  getGeocode,
+  getLatLng,
+} from "use-places-autocomplete";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxPopover,
+  ComboboxList,
+  ComboboxOption,
+} from "@reach/combobox";
+import "@reach/combobox/styles.css";
+import { Place } from "../../constants";
+import { useState, useEffect } from "react";
+import  askGPT  from "../api/spots"
+
+type SearchProps = {
+  setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
+  setPlaces : (list: Place[]) => void;
+  places : (Place[]);
+  searchResult: (google.maps.LatLngLiteral | undefined);
+  setDirections: (result: google.maps.DirectionsResult | undefined) => void;
+  setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;
+};
+
+export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setRouteData }: SearchProps) {
+  var myPlace : Place;
+  const {
+    ready,
+    value,
+    setValue,
+    suggestions: { status, data },
+    clearSuggestions,
+  } = usePlacesAutocomplete();
+
+  const[ result, setResult] = useState<string>("");
+  const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
+ 
+  useEffect(() => {
+    const placesNoName = places.map((place) => ({
+      lat: place.lat,
+      lng: place.lng,
+    }));
+    setPlacesLatLng(placesNoName);
+    fetchDirections(placesNoName);
+  }, [places]);
+
+
+  const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
+    if (placesLocs.length < 2) return;
+
+    //Convert into DirectionsWaypoints
+    const inBetweenPlaces = placesLocs.slice(1, placesLocs.length-1).map((place) => {
+      return {
+        location: new google.maps.LatLng(place.lat, place.lng),
+      };
+    });
+
+    const service = new google.maps.DirectionsService();
+    service.route(
+      {
+        origin: placesLocs[0],
+        destination: placesLocs[placesLocs.length-1],
+        waypoints: inBetweenPlaces,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === "OK" && result) {
+          console.log("We set the directions with: ");
+          console.log(placesLocs);
+          setRouteData(result.routes[0].legs)
+          setDirections(result);
+          setSearchResult(undefined);
         }
-      );
-      // setDirectionsFound(true);
-    };
-
-    // async function getCampingSpots (searchPlace: Place) {
-    //   if (!searchPlace) return;
-
-    //   console.log("When sending")
-    //   console.log(searchPlace.name);
-    //   console.log(searchPlace.lat + ", " + searchPlace.lng);
-
-    //   try {
-    //     const response = await fetch("/api/generate", {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
-    //     });
-  
-    //     const data = await response.json();
-    //     if (response.status !== 200) {
-    //       throw data.error || new Error(`Request failed with status ${response.status}`);
-    //     }
-  
-    //     console.log(data.result);
-    //   } catch(error:any) {
-    //     // Consider implementing your own error handling logic here
-    //     console.error(error);
-    //     alert(error.message);
-    //   }
-    // }
-  
-    const handleSelect = async (val: string) => {
-      // setDirections(undefined)
-      // setRouteFound(false)
-      setValue("", false);
-      clearSuggestions();
-
-      const results = await getGeocode({ address: val });
-      const { lat, lng } = await getLatLng(results[0]);
-      myPlace = {name: val, lat:lat, lng:lng};
-      setPlaces([...places, myPlace]);
-      console.log(typeof({lat,lng}))
-      console.log({lat,lng})
-      setSearchResult({ lat, lng });
-      // console.log("calling openai");
-      // askGPT(myPlace);
-    };
-  
-    return (
-      <Combobox onSelect={handleSelect}>
-        <ComboboxInput
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-          }
-          }
-
-          disabled={!ready}
-          className="combobox-input"
-          placeholder="Search Location"
-        />
-        <ComboboxPopover style={{zIndex:999999}}>
-          <ComboboxList>
-            {status === "OK" &&
-              data.map(({ place_id, description }) => (
-                <ComboboxOption key={place_id} value={description} />
-              ))}
-          </ComboboxList>
-        </ComboboxPopover>
-      </Combobox>
+      }
     );
-  }
-  
+  };
+
+  // async function getCampingSpots (searchPlace: Place) {
+  //   if (!searchPlace) return;
+
+  //   console.log("When sending")
+  //   console.log(searchPlace.name);
+  //   console.log(searchPlace.lat + ", " + searchPlace.lng);
+
+  //   try {
+  //     const response = await fetch("/api/generate", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ coordinates: "(" + searchPlace.lat + ", " + searchPlace.lng + ")", address: searchPlace.name }),
+  //     });
+
+  //     const data = await response.json();
+  //     if (response.status !== 200) {
+  //       throw data.error || new Error(`Request failed with status ${response.status}`);
+  //     }
+
+  //     console.log(data.result);
+  //   } catch(error:any) {
+  //     // Consider implementing your own error handling logic here
+  //     console.error(error);
+  //     alert(error.message);
+  //   }
+  // }
+
+  const handleSelect = async (val: string) => {
+    setValue("", false);
+    clearSuggestions();
+
+    const results = await getGeocode({ address: val });
+    const { lat, lng } = await getLatLng(results[0]);
+    myPlace = {name: val, lat:lat, lng:lng};
+    setPlaces([...places, myPlace]);
+    console.log(typeof({lat,lng}))
+    console.log({lat,lng})
+    setSearchResult({ lat, lng });
+    // console.log("calling openai");
+    // askGPT(myPlace);
+  };
+
+  return (
+    <Combobox onSelect={handleSelect}>
+      <ComboboxInput
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+        }
+        }
+
+        disabled={!ready}
+        className="combobox-input"
+        placeholder="Search Location"
+      />
+      <ComboboxPopover style={{zIndex:999999}}>
+        <ComboboxList>
+          {status === "OK" &&
+            data.map(({ place_id, description }) => (
+              <ComboboxOption key={place_id} value={description} />
+            ))}
+        </ComboboxList>
+      </ComboboxPopover>
+    </Combobox>
+  );
+}
