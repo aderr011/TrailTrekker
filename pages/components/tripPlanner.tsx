@@ -14,11 +14,13 @@ import usePlacesAutocomplete, {
   type TripPlannerProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
     searchResult: (google.maps.LatLngLiteral | undefined);
+    directions: (google.maps.DirectionsResult | undefined);
     setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   };
   
-  export default function TripPlanner({ setSearchResult, searchResult, setDirections }: TripPlannerProps) {
-    
+  export default function TripPlanner({ setSearchResult, searchResult, directions, setDirections }: TripPlannerProps) {
+    const [directionsFound, setDirectionsFound] = useState<boolean | undefined>(false);
+
 
     const usePlaces = (): [Place[], (list: Place[]) => void] => {
       const [list, setList] = useState<Place[]>([]);
@@ -41,8 +43,20 @@ import usePlacesAutocomplete, {
       <>
         <h1 className="planner-text">Trip Planner</h1>
         {/* <h1 className="planner-text">Trip Planner</h1> */}
-        <Search setSearchResult={setSearchResult} places={places} setPlaces={setPlaces} searchResult={searchResult} setDirections={setDirections}/>
-        {places && <Itinerary places={places} setPlaces={setPlaces} setDirections={setDirections} setSearchResult={setSearchResult}/>}
+        <Search setSearchResult={setSearchResult} 
+                places={places} 
+                setPlaces={setPlaces} 
+                searchResult={searchResult} 
+                setDirections={setDirections}
+                setDirectionsFound={setDirectionsFound}
+        />
+        {places && <Itinerary directions={directions} 
+                              places={places} 
+                              setPlaces={setPlaces} 
+                              setDirections={setDirections} 
+                              setSearchResult={setSearchResult}
+                              directionsFound={directionsFound}
+          />}
         </>
     );
   }

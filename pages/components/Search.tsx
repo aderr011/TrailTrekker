@@ -20,9 +20,10 @@ import usePlacesAutocomplete, {
     places : (Place[]);
     searchResult: (google.maps.LatLngLiteral | undefined);
     setDirections: (result: google.maps.DirectionsResult | undefined) => void;
+    setDirectionsFound: (bool: boolean | undefined) => void;
   };
   
-  export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections }: SearchProps) {
+  export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setDirectionsFound }: SearchProps) {
     var myPlace : Place;
     const {
       ready,
@@ -46,6 +47,7 @@ import usePlacesAutocomplete, {
 
 
     const fetchDirections = (placesLocs: google.maps.LatLngLiteral[]) => {
+      
       if (placesLocs.length < 2) return;
 
       //Convert into DirectionsWaypoints
@@ -65,15 +67,19 @@ import usePlacesAutocomplete, {
         },
         (result, status) => {
           if (status === "OK" && result) {
-            console.log("We set the directions with: ");
-            console.log(placesLocs);
-            console.log("The directions renderer")
-            console.log(result)
+            // console.log("We set the directions with: ");
+            // console.log(placesLocs);
+            // console.log("The directions renderer")
+            // console.log(result)
+            // console.log("And another thing: ")
+            // console.log(result?.routes[0].legs)
             setDirections(result);
+
             setSearchResult(undefined);
           }
         }
       );
+      // setDirectionsFound(true);
     };
 
     // async function getCampingSpots (searchPlace: Place) {
@@ -106,6 +112,8 @@ import usePlacesAutocomplete, {
     // }
   
     const handleSelect = async (val: string) => {
+      setDirections(undefined)
+      setDirectionsFound(false)
       setValue("", false);
       clearSuggestions();
 

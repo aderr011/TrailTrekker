@@ -13,15 +13,18 @@ import {
   ListItemText
 } from "@mui/material";
 
+
 import {TfiTrash} from "react-icons/tfi";
 type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
+  directions: (google.maps.DirectionsResult | undefined);
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
+  directionsFound: (boolean | undefined);
 };
 
-export default function Itinerary({ places, setPlaces, setSearchResult, setDirections }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces, setSearchResult, directions, setDirections, directionsFound }: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
@@ -47,7 +50,14 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
       setDirections(undefined)
     }
   };
+// && directions?.routes[0].legs[indexNum-1].duration
 
+// {/* TO FIX: 
+//                           I have to create another hook which can be checked which 
+//                           indicates when the new directions have been allocated.
+//                           Because what is happening I believe is that the place is added to the 
+//                           list of places which triggers the directions api call but while we are 
+//                           waiting for that response we are attempting to get the duration */}
   return (
     <div>
       <h2 className="itinerary-header">Itinerary</h2>
@@ -57,9 +67,10 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
               <List 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", maxWidth: 400, maxHeight: "70vh", overflow: 'auto' }}
+                  sx={{ width: "100%", maxWidth: 400, maxHeight: "70vh", overflow: 'auto'}}
               >
                 {places.map(({name, lat, lng}, indexNum) => {
+                  console.log(indexNum)
                   return (
                     <Draggable key={name} draggableId={name} index={indexNum}>
                       {(provided) => (
@@ -71,8 +82,18 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                             elevation={2}
                             sx={{ marginBottom: "10px" }}
                         >
+
+                          
+
+
+                          {(indexNum>0 && (directions?.routes[0].legs.length === places.length-1)) && (
+                            <>
+                              <ListItemText secondary={directions?.routes[0].legs[indexNum-1].duration} sx={{position: 'relative', textAlign: 'center', top: '4px', padding: '3px'}}  />
+                              <Divider variant='fullWidth'/>
+                            </>
+                          )}
+                          
                           <ListItem
-                            sx={{backgroundColor: 'transparent', '&:hover': { backgroundColor: 'transparent' }}}
                             secondaryAction={
                               <IconButton edge="end" aria-label="delete">
                                 <TfiTrash onClick={() => removePlace(indexNum)}/>
@@ -92,9 +113,7 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                           </ListItem>
                           
                         </Paper>
-                        <Divider variant="middle">
-                        <ListItemText primary={"location.distance"} sx={{color: 'white'}}/>
-                      </Divider>
+                        
                       </>
                       )}
                     </Draggable>
