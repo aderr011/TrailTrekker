@@ -20,10 +20,10 @@ import usePlacesAutocomplete, {
     places : (Place[]);
     searchResult: (google.maps.LatLngLiteral | undefined);
     setDirections: (result: google.maps.DirectionsResult | undefined) => void;
-    setDirectionsFound: (bool: boolean | undefined) => void;
+    // setRouteFound: (tf: boolean | undefined) => void;
   };
   
-  export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setDirectionsFound }: SearchProps) {
+  export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections }: SearchProps) {
     var myPlace : Place;
     const {
       ready,
@@ -67,12 +67,12 @@ import usePlacesAutocomplete, {
         },
         (result, status) => {
           if (status === "OK" && result) {
-            // console.log("We set the directions with: ");
-            // console.log(placesLocs);
-            // console.log("The directions renderer")
-            // console.log(result)
-            // console.log("And another thing: ")
-            // console.log(result?.routes[0].legs)
+            console.log("We set the directions with: ");
+            console.log(placesLocs);
+            console.log("The directions renderer")
+            console.log(result)
+            console.log("And another thing: ")
+            console.log(result?.routes[0].legs)
             setDirections(result);
 
             setSearchResult(undefined);
@@ -112,8 +112,8 @@ import usePlacesAutocomplete, {
     // }
   
     const handleSelect = async (val: string) => {
-      setDirections(undefined)
-      setDirectionsFound(false)
+      // setDirections(undefined)
+      // setRouteFound(false)
       setValue("", false);
       clearSuggestions();
 

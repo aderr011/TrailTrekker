@@ -17,6 +17,7 @@ import { Squeeze as Hamburger } from 'hamburger-react'
 export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
+
   // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();

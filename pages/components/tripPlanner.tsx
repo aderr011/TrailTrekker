@@ -19,8 +19,7 @@ import usePlacesAutocomplete, {
   };
   
   export default function TripPlanner({ setSearchResult, searchResult, directions, setDirections }: TripPlannerProps) {
-    const [directionsFound, setDirectionsFound] = useState<boolean | undefined>(false);
-
+    const [routeFound, setRouteFound] = useState<boolean | undefined>(false);
 
     const usePlaces = (): [Place[], (list: Place[]) => void] => {
       const [list, setList] = useState<Place[]>([]);
@@ -48,14 +47,14 @@ import usePlacesAutocomplete, {
                 setPlaces={setPlaces} 
                 searchResult={searchResult} 
                 setDirections={setDirections}
-                setDirectionsFound={setDirectionsFound}
+                setRouteFound={setRouteFound}
         />
         {places && <Itinerary directions={directions} 
                               places={places} 
                               setPlaces={setPlaces} 
                               setDirections={setDirections} 
                               setSearchResult={setSearchResult}
-                              directionsFound={directionsFound}
+                              routeFound={routeFound}
           />}
         </>
     );

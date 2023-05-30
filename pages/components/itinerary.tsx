@@ -21,10 +21,10 @@ type ItineraryProps = {
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
   directions: (google.maps.DirectionsResult | undefined);
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
-  directionsFound: (boolean | undefined);
+  routeFound: (boolean | undefined);
 };
 
-export default function Itinerary({ places, setPlaces, setSearchResult, directions, setDirections, directionsFound }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces, setSearchResult, directions, setDirections, routeFound }: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
