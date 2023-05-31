@@ -10,7 +10,8 @@ import {
   IconButton,
 	Paper,
   Divider,
-  ListItemText
+  ListItemText,
+  Avatar
 } from "@mui/material";
 
 
@@ -19,7 +20,6 @@ type ItineraryProps = {
   places: (Place[]);
   setPlaces: ((list: Place[]) => void);
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-  // directions: (google.maps.DirectionsResult | undefined);
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   routeData: (google.maps.DirectionsLeg[] | undefined);
 };
@@ -50,14 +50,7 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
       setDirections(undefined)
     }
   };
-// && directions?.routes[0].legs[indexNum-1].duration
 
-// {/* TO FIX: 
-//                           I have to create another hook which can be checked which 
-//                           indicates when the new directions have been allocated.
-//                           Because what is happening I believe is that the place is added to the 
-//                           list of places which triggers the directions api call but while we are 
-//                           waiting for that response we are attempting to get the duration */}
   return (
     <div>
       <h2 className="itinerary-header">Itinerary</h2>
@@ -67,10 +60,9 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
               <List 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", maxWidth: 400, maxHeight: "70vh", overflow: 'auto'}}
+                  sx={{ width: "100%", position: 'relative', alignItems: 'right', alignContent: 'right', alignSelf:'right', textAlign: 'right', maxWidth: 400, maxHeight: "70vh", overflow: 'auto'}}
               >
                 {places.map(({name, lat, lng}, indexNum) => {
-                  console.log(indexNum)
                   return (
                     <Draggable key={name} draggableId={name} index={indexNum}>
                       {(provided) => (
@@ -82,9 +74,6 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                             elevation={2}
                             sx={{ marginBottom: "10px" }}
                         >
-
-                          
-
 
                           {(indexNum>0 && routeData && places.length-1 === routeData.length) && (
                             <>
@@ -100,16 +89,14 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                               </IconButton>
                             }
                           >
-                            <ListItemIcon>
-                              <MenuIcon/>
-                            </ListItemIcon>
+                            <Avatar sx={{ bgcolor: "#f23d3d" }}>{String.fromCharCode(65+indexNum)}</Avatar>
                             
                             <TextField 
+                              sx={{paddingLeft: "15px"}}
                               value={name}
                               fullWidth
                               variant="outlined" 
                             />
-                            {/* <ListItemText primary={name.substring(0,name.indexOf(",")).trim()} secondary={name.substring(name.indexOf(",")+1).trim()}/> */}
                           </ListItem>
                           
                         </Paper>

@@ -50,10 +50,6 @@ import usePlacesAutocomplete, {
                 }}
         />
 
-{/* <TripPlanner directions={directions} setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
-              setSearchResult(position);         
-            }}/> */}
-
         {places && (
           <Itinerary routeData={routeData}
                               places={places} 

@@ -162,7 +162,7 @@ export default function GMap() {
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
-          <TripPlanner directions={directions} setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
+        <TripPlanner directions={directions} setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
               setSearchResult(position);         
             }}/>
         </div>
