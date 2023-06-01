@@ -38,6 +38,21 @@ a {
   height: 100vh;
 }
 
+.search {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;  
+  /* height: 45px; */
+  /* background: #333c4e; */
+}
+/* .searchbox Combobox {
+  width: 100%;
+} */
+/* .header PlaceIcon {
+  margin: auto 0; 
+  color: white;
+} */
+
 .header {
   display: flex;
   align-items: center;

@@ -13,6 +13,7 @@ import "@reach/combobox/styles.css";
 import { Place } from "../../constants";
 import { useState, useEffect } from "react";
 import  askGPT  from "../api/spots"
+import PlaceIcon from '@mui/icons-material/Place';
 
 type SearchProps = {
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
@@ -21,9 +22,10 @@ type SearchProps = {
   searchResult: (google.maps.LatLngLiteral | undefined);
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;
+  setSelectingPlace: (tf: boolean) => void;
 };
 
-export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setRouteData }: SearchProps) {
+export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData }: SearchProps) {
   var myPlace : Place;
   const {
     ready,
@@ -117,9 +119,13 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     // console.log("calling openai");
     // askGPT(myPlace);
   };
+  function handlePlaceClick (): void {
+    setSelectingPlace(true);
+  }
 
   return (
-    <Combobox onSelect={handleSelect}>
+    <div className="search">  
+    <Combobox style={{width:'100%'}} onSelect={handleSelect}>
       <ComboboxInput
         value={value}
         onChange={(e) => {
@@ -140,5 +146,8 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
         </ComboboxList>
       </ComboboxPopover>
     </Combobox>
+    <PlaceIcon sx={{marginLeft: '15px'}} onClick={handlePlaceClick}></PlaceIcon>
+    </div>
+
   );
 }

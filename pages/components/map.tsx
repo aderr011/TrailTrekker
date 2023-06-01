@@ -17,6 +17,14 @@ import { Squeeze as Hamburger } from 'hamburger-react'
 export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
+  const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
+  const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
+  const usePlaces = (): [Place[], (list: Place[]) => void] => {
+    const [list, setList] = useState<Place[]>([]);
+  
+    return [list, setList];
+  };
+  const [places, setPlaces] = usePlaces();
 
   // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
@@ -151,6 +159,17 @@ export default function GMap() {
   }
   const [sidebar, setSidebar] = useState(true);
 
+  function handleOnClick (e: google.maps.MapMouseEvent): void {
+    if (selectingPlace) {
+      if (!e.latLng) return;
+      const lat: number = e.latLng.lat()
+      const lng: number = e.latLng.lng()
+      const myPlace: Place = {name: lat + ", " + lng, lat:lat, lng:lng}
+      setPlaces([...places, myPlace]);
+    }
+
+  }
+
   return (
     <div className="container">
 
@@ -162,7 +181,7 @@ export default function GMap() {
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
-        <TripPlanner directions={directions} setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
+        <TripPlanner places={places} setSelectingPlace={setSelectingPlace} setPlaces={setPlaces} directions={directions} setDirections={setDirections} searchResult={searchResult} setSearchResult={(position) => {
               setSearchResult(position);         
             }}/>
         </div>
@@ -173,6 +192,7 @@ export default function GMap() {
             options={options}
             onLoad={onLoad}
             onDblClick={handleDblClick}
+            onClick={handleOnClick}
             onIdle={onIdle}
           >
             {directions && (

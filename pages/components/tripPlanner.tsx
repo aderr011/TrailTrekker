@@ -16,17 +16,15 @@ import usePlacesAutocomplete, {
     searchResult: (google.maps.LatLngLiteral | undefined);
     directions: (google.maps.DirectionsResult | undefined);
     setDirections: (result: google.maps.DirectionsResult | undefined) => void;
+    places: (Place[]);
+    setPlaces : (list: Place[]) => void;
+    setSelectingPlace: (tf: boolean) => void;
   };
   
-  export default function TripPlanner({ setSearchResult, searchResult, directions, setDirections }: TripPlannerProps) {
+  export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections }: TripPlannerProps) {
     const [routeData, setRouteData] = useState<google.maps.DirectionsLeg[] | undefined>();
 
-    const usePlaces = (): [Place[], (list: Place[]) => void] => {
-      const [list, setList] = useState<Place[]>([]);
     
-      return [list, setList];
-    };
-    const [places, setPlaces] = usePlaces();
 
     
     const {
@@ -44,6 +42,7 @@ import usePlacesAutocomplete, {
                 places={places} 
                 setPlaces={setPlaces} 
                 searchResult={searchResult} 
+                setSelectingPlace={setSelectingPlace}
                 setDirections={setDirections}
                 setRouteData={(data) => {
                   setRouteData(data)         
