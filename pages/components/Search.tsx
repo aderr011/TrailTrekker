@@ -7,13 +7,17 @@ import {
   ComboboxInput,
   ComboboxPopover,
   ComboboxList,
-  ComboboxOption,
+  ComboboxOption
 } from "@reach/combobox";
+import { Modal,Paper,Typography, 
+Box } from '@mui/material';
+
 import "@reach/combobox/styles.css";
 import { Place } from "../../constants";
 import { useState, useEffect } from "react";
 import  askGPT  from "../api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
+import IosShareIcon from '@mui/icons-material/IosShare';
 
 type SearchProps = {
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
@@ -123,6 +127,10 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     setSelectingPlace(true);
   }
 
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
   return (
     <div className="search">  
     <Combobox style={{width:'100%'}} onSelect={handleSelect}>
@@ -146,7 +154,25 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
         </ComboboxList>
       </ComboboxPopover>
     </Combobox>
-    <PlaceIcon sx={{marginLeft: '15px'}} onClick={handlePlaceClick}></PlaceIcon>
+    <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick}></PlaceIcon>
+    <IosShareIcon  onClick={()=>setOpen(!open)} sx={{marginLeft: '10px'}} ></IosShareIcon>
+    <div>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={{position: "fixed", display: "flex", justifyContent: "center", alignItems: 'center'}}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Text in a modal
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+          </Typography>
+        </Box>
+      </Modal>
+    </div>
     </div>
 
   );

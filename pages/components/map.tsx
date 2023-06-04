@@ -166,6 +166,7 @@ export default function GMap() {
       const lng: number = e.latLng.lng()
       const myPlace: Place = {name: lat + ", " + lng, lat:lat, lng:lng}
       setPlaces([...places, myPlace]);
+      setSelectingPlace(false)
     }
 
   }
