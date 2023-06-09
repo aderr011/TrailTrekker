@@ -7,7 +7,7 @@ import {
   ComboboxInput,
   ComboboxPopover,
   ComboboxList,
-  ComboboxOption
+  ComboboxOption,
 } from "@reach/combobox";
 import { Modal,Paper,Typography, 
 Box } from '@mui/material';
@@ -18,6 +18,9 @@ import { useState, useEffect } from "react";
 import  askGPT  from "../api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
 import IosShareIcon from '@mui/icons-material/IosShare';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import TextField from '@mui/material/TextField';
+
 
 type SearchProps = {
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
@@ -41,12 +44,19 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
 
   const[ result, setResult] = useState<string>("");
   const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
+  const [gMapsLink, setGMapsLink] = useState<string>();
  
   useEffect(() => {
     const placesNoName = places.map((place) => ({
       lat: place.lat,
       lng: place.lng,
     }));
+
+    if(places[0]){
+      let mapsLink:(string|undefined) = generateGoogleMapsLink(places[0].name, places[places.length-1].name, places.slice(1, places.length-1))
+      setGMapsLink(mapsLink)
+    }
+    
     setPlacesLatLng(placesNoName);
     fetchDirections(placesNoName);
   }, [places]);
@@ -61,6 +71,7 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
         location: new google.maps.LatLng(place.lat, place.lng),
       };
     });
+    
 
     const service = new google.maps.DirectionsService();
     service.route(
@@ -131,6 +142,41 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "35%",
+    bgcolor: "background.paper",
+    border: "2px solid #000",
+    boxShadow: 24,
+    p: 4,
+    zIndex: 9999999999999999999,
+};
+
+function generateGoogleMapsLink(start: string, end: string, waypoints: Place[]) {
+  if (!start || !end) return;
+  const baseUrl:string = "https://www.google.com/maps/dir/";
+  console.log(waypoints);
+  const waypointStr:string = waypoints.map((wp: any) => `${wp.name.replace(/ /g, '+')}`).join('/');
+  const startStr:string = start.replace(/ /g, '+');
+  const destStr:string = end.replace(/ /g, "+");
+
+  return `${baseUrl}${startStr}/${waypointStr}/${destStr}`;
+}
+
+function handleCopy() {
+  if(!gMapsLink) return
+  navigator.clipboard.writeText(gMapsLink)
+  .then(() => {
+    alert('Text copied to clipboard');
+  })
+  .catch(err => {
+    alert('Error occurred while copying text to clipboard: ');
+  });
+}
+
   return (
     <div className="search">  
     <Combobox style={{width:'100%'}} onSelect={handleSelect}>
@@ -154,7 +200,7 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
         </ComboboxList>
       </ComboboxPopover>
     </Combobox>
-    <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick}></PlaceIcon>
+    <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick} ></PlaceIcon>
     <IosShareIcon  onClick={()=>setOpen(!open)} sx={{marginLeft: '10px'}} ></IosShareIcon>
     <div>
       <Modal
@@ -163,13 +209,17 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={{position: "fixed", display: "flex", justifyContent: "center", alignItems: 'center'}}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Text in a modal
+        <Box sx={ style}>
+        <Typography variant="h6" component="h2">
+            Google Maps Link
           </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-          </Typography>
+          <br/>
+        <TextField
+        style={{width:"100%"}}
+        value={gMapsLink}
+        InputProps={{endAdornment: <ContentCopyIcon onClick={handleCopy}/>}}
+      />
+          
         </Box>
       </Modal>
     </div>

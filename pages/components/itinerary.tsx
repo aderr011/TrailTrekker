@@ -2,7 +2,6 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useState, useEffect } from "react";
 import { Place } from "../../constants";
 import MenuIcon from '@mui/icons-material/Menu';
-import IosShareIcon from '@mui/icons-material/IosShare';
 import {
 	List,
 	ListItem,
