@@ -24,9 +24,6 @@ import usePlacesAutocomplete, {
   export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections }: TripPlannerProps) {
     const [routeData, setRouteData] = useState<google.maps.DirectionsLeg[] | undefined>();
 
-    
-
-    
     const {
       ready,
       value,

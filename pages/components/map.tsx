@@ -12,7 +12,7 @@ import askGPT from "../api/spots";
 import { LargeNumberLike } from "crypto";
 import * as FaIcons from 'react-icons/fa';
 import { Squeeze as Hamburger } from 'hamburger-react'
-
+import AddIcon from '@mui/icons-material/Add';
 
 export default function GMap() {
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
@@ -32,6 +32,7 @@ export default function GMap() {
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<{name: string; length: number; description: string; system: string; level: string; forest: string; dateRange: string, allowedVehicles: string|undefined} | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<any>();
+  const [trailCoordinates, setTrailCoordinates] = useState<Place | undefined>();
 
   const mapRef = useRef<google.maps.Map>();
 
@@ -89,6 +90,9 @@ export default function GMap() {
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, mapBounds]);
 
+      // https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson
+
+
       // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       // const campgrounds = `https://services.arcgis.com/4OV0eRKiLAYkbH2J/arcgis/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/query?where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
@@ -121,6 +125,11 @@ export default function GMap() {
         const level: string = feature.getProperty("OPERATIONALMAINTLEVEL")
         const dateRange: string = feature.getProperty("PASSENGERVEHICLE_DATESOPEN")
         const forestName: string = feature.getProperty("FORESTNAME")
+
+        const lat: number = feature.getGeometry()?.getAt(0).lat()
+        const lng: number = feature.getGeometry()?.getAt(0).lng()
+        const myPlace: Place = {name: lat + ", " + lng, lat:lat, lng:lng}
+        setTrailCoordinates(myPlace);
 
         // Check the different vehicles that are allowed on trail
         let variables = new Map<string, string>([
@@ -168,7 +177,11 @@ export default function GMap() {
       setPlaces([...places, myPlace]);
       setSelectingPlace(false)
     }
+  }
 
+  function handleTrailSelect() {
+    if (trailCoordinates) setPlaces([...places, trailCoordinates]);
+    setTrailCoordinates(undefined)
   }
 
   return (
@@ -216,9 +229,12 @@ export default function GMap() {
               }}
             >
               <div>
-                <h2>
-                {selectedTrail.name}
-                </h2>
+                <div className="trail">
+                  <h2> {selectedTrail.name}</h2>
+                  <AddIcon onClick={handleTrailSelect} fontSize="large"/>
+                </div>
+                
+                
                 <p>Length: {selectedTrail.length}mi</p>
                 <p>Forest: {selectedTrail.forest}</p>
                 <p>System: {selectedTrail.system}</p>
