@@ -159,7 +159,7 @@ function generateGoogleMapsLink(start: string, end: string, waypoints: Place[]) 
   if (!start || !end) return;
   const baseUrl:string = "https://www.google.com/maps/dir/";
   console.log(waypoints);
-  const waypointStr:string = waypoints.map((wp: any) => `${wp.name.replace(/ /g, '+')}`).join('/');
+  const waypointStr:string = waypoints.map((wp: any) => `${wp.lat},${wp.lng}`).join('/');
   const startStr:string = start.replace(/ /g, '+');
   const destStr:string = end.replace(/ /g, "+");
 

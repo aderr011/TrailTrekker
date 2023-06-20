@@ -32,7 +32,8 @@ export default function GMap() {
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<{name: string; length: number; description: string; system: string; level: string; forest: string; dateRange: string, allowedVehicles: string|undefined, coordinates: google.maps.LatLngLiteral} | undefined>();
-  const [selectedTrailLoc, setSelectedTrailLoc] = useState<any>();
+  const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng | undefined>();
+  const [selectedCampsite, setSelectedCampsite] = useState<Place | undefined>();
   const [campsites, setCampsites] = useState<Place[]>();
 
   const mapRef = useRef<google.maps.Map>();
@@ -95,6 +96,7 @@ export default function GMap() {
       const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       // const campgrounds = `https://services.arcgis.com/4OV0eRKiLAYkbH2J/arcgis/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/query?where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       geoJsonLayer.loadGeoJson(queryString)
+      // geoJsonLayer.loadGeoJson("https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=SITE_NAME&&f=geojson")
       // geoJsonLayer.loadGeoJson('/campsites.geojson')
       // geoJsonLayer.loadGeoJson(campgrounds)
 
@@ -118,6 +120,7 @@ export default function GMap() {
       };
       
       geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
+        console.log("Clicked!")
         const feature = event.feature;
         geoJsonLayer.overrideStyle(feature, selectedStyle);
 
@@ -176,19 +179,30 @@ export default function GMap() {
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
-    fetch('/campsites.geojson')
+    fetch('https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&f=geojson')
       .then(response => response.json())
       .then(data => {
         // extract waypoints from GeoJSON data
         const waypoints: Place[] = data.features.map((feature:any) => {
-          console.log(feature.properties.latitude)
+          console.log(feature.geometry.coordinates[0])
           return{
-            name:feature.properties.title, 
-            lat:feature.properties.latitude, 
-            lng:feature.properties.longitude,
+            name:"feature.properties.TYPE", 
+            lat:feature.geometry.coordinates[0], 
+            lng:feature.geometry.coordinates[1],
           }
         });
         setCampsites(waypoints);
+
+        // // extract waypoints from GeoJSON data
+        // const waypoints: Place[] = data.features.map((feature:any) => {
+        //   console.log(feature.properties.latitude)
+        //   return{
+        //     name:feature.properties.title, 
+        //     lat:feature.properties.latitude, 
+        //     lng:feature.properties.longitude,
+        //   }
+        // });
+        // setCampsites(waypoints);
       })
       .catch(error => console.error('An error occurred:', error));
   },[]);
@@ -223,14 +237,31 @@ export default function GMap() {
     }
   }
 
+  function handleCampsiteSelect() {
+    let myPlace: Place;
+    if (selectedCampsite) {
+      const lat: number = selectedCampsite.lat;
+      const lng: number = selectedCampsite.lng;
+      if (selectedCampsite.name)
+        myPlace = {name: selectedCampsite.name, lat:lat, lng:lng}
+      else
+        myPlace = {name: lat+", "+lng, lat:lat, lng:lng}
+      setPlaces([...places, myPlace]);
+    }
+  }
+
+  function handleCampsiteClick(index: number) {
+    if (!campsites) return;
+    console.log(campsites[index])
+    setSelectedCampsite(campsites[index])
+  }
+
   return (
     <div className="container">
-
       <div className="header">
         <Hamburger label="Show Trip Planner" color="white" size={25} toggled={sidebar} toggle={setSidebar} />
         <h1>TrailTrekker</h1>
       </div>
-      
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
@@ -258,7 +289,9 @@ export default function GMap() {
                       key={i}
                       position={{ lat: location.lat, lng: location.lng }}
                       clusterer={clusterer}
+                      onClick={()=>handleCampsiteClick(i)}
                     />
+
                   ))
                 }
               </MarkerClusterer>
@@ -275,6 +308,23 @@ export default function GMap() {
                 }}
               />
             )}
+            {selectedCampsite && (
+            <InfoWindow
+              position={{lat: selectedCampsite.lat, lng: selectedCampsite.lng}}
+              onCloseClick={() => {
+                setSelectedCampsite(undefined);
+              }}
+            >
+              <div>
+                <div className="trail">
+                  <h2> {selectedCampsite.name}</h2>
+                  <AddIcon onClick={handleCampsiteSelect} fontSize="large"/>
+                </div>
+                
+                {(selectedCampsite.lat && selectedCampsite.lng) && (<p>Coordinates: ({selectedCampsite.lat.toFixed(4)}, {selectedCampsite.lng.toFixed(4)})</p>)}
+              </div>
+            </InfoWindow>
+          )}
             {selectedTrail && (
             <InfoWindow
               position={selectedTrailLoc}
