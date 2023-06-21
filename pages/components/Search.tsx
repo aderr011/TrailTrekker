@@ -13,13 +13,14 @@ import { Modal,Paper,Typography,
 Box } from '@mui/material';
 
 import "@reach/combobox/styles.css";
-import { Place } from "../../constants";
+import { Place, Campsite } from "../../constants";
 import { useState, useEffect } from "react";
 import  askGPT  from "../api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import TextField from '@mui/material/TextField';
+import TuneIcon from '@mui/icons-material/Tune';
 
 
 type SearchProps = {
@@ -30,9 +31,11 @@ type SearchProps = {
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;
   setSelectingPlace: (tf: boolean) => void;
+  campsites: (Campsite[] | undefined);
+  setCampsites: (campsites: Campsite[] | undefined) => void;
 };
 
-export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData }: SearchProps) {
+export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData, campsites, setCampsites }: SearchProps) {
   var myPlace : Place;
   const {
     ready,
@@ -200,8 +203,13 @@ function handleCopy() {
         </ComboboxList>
       </ComboboxPopover>
     </Combobox>
-    <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick} ></PlaceIcon>
-    <IosShareIcon  onClick={()=>setOpen(!open)} sx={{marginLeft: '10px'}} ></IosShareIcon>
+    <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick}/>
+    <IosShareIcon  onClick={()=>setOpen(!open)} sx={{marginLeft: '10px'}}/>
+    <TuneIcon onClick={()=>{
+      let dispersed = campsites.filter(campsite => campsite.properties.TYPE.includes("CAMPING UNIT"));
+      setCampsites(dispersed);
+    }} 
+    sx={{marginLeft: '10px'}}/>
     <div>
       <Modal
         open={open}
