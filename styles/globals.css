@@ -38,6 +38,33 @@ a {
   height: 100vh;
 }
 
+.itinerary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;  
+}
+
+.search {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;  
+  /* height: 45px; */
+  /* background: #333c4e; */
+}
+
+.trail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;  
+}
+/* .searchbox Combobox {
+  width: 100%;
+} */
+/* .header PlaceIcon {
+  margin: auto 0; 
+  color: white;
+} */
+
 .header {
   display: flex;
   align-items: center;

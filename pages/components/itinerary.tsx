@@ -8,8 +8,12 @@ import {
 	ListItemIcon,
   TextField,
   IconButton,
-	Paper
+	Paper,
+  Divider,
+  ListItemText,
+  Avatar
 } from "@mui/material";
+
 
 import {TfiTrash} from "react-icons/tfi";
 type ItineraryProps = {
@@ -17,9 +21,10 @@ type ItineraryProps = {
   setPlaces: ((list: Place[]) => void);
   setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
+  routeData: (google.maps.DirectionsLeg[] | undefined);
 };
 
-export default function Itinerary({ places, setPlaces, setSearchResult, setDirections }: ItineraryProps) {
+export default function Itinerary({ places, setPlaces, setSearchResult, setDirections, routeData}: ItineraryProps) {
 
   function handleOnDragEnd(result: any) {
     if (!result.destination) return;
@@ -55,12 +60,13 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
               <List 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", maxWidth: 400, maxHeight: "70vh", overflow: 'auto' }}
+                  sx={{ width: "100%", position: 'relative', alignItems: 'right', alignContent: 'right', alignSelf:'right', textAlign: 'right', maxWidth: 400, maxHeight: "70vh", overflow: 'auto'}}
               >
                 {places.map(({name, lat, lng}, indexNum) => {
                   return (
                     <Draggable key={name} draggableId={name} index={indexNum}>
                       {(provided) => (
+                        <>
                         <Paper
                             ref={provided.innerRef} 
                             {...provided.draggableProps} 
@@ -68,6 +74,14 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                             elevation={2}
                             sx={{ marginBottom: "10px" }}
                         >
+
+                          {(indexNum>0 && routeData && places.length-1 === routeData.length) && (
+                            <>
+                              <ListItemText secondary={routeData[indexNum-1].duration?.text} sx={{position: 'relative', textAlign: 'center', top: '4px', padding: '3px'}}  />
+                              <Divider variant='fullWidth'/>
+                            </>
+                          )}
+                          
                           <ListItem
                             secondaryAction={
                               <IconButton edge="end" aria-label="delete">
@@ -75,18 +89,19 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
                               </IconButton>
                             }
                           >
-                            <ListItemIcon>
-                              <MenuIcon/>
-                            </ListItemIcon>
+                            <Avatar sx={{ bgcolor: "#f23d3d" }}>{String.fromCharCode(65+indexNum)}</Avatar>
                             
                             <TextField 
+                              sx={{paddingLeft: "15px"}}
                               value={name}
                               fullWidth
                               variant="outlined" 
                             />
-                            {/* <ListItemText primary={name.substring(0,name.indexOf(",")).trim()} secondary={name.substring(name.indexOf(",")+1).trim()}/> */}
                           </ListItem>
+                          
                         </Paper>
+                        
+                      </>
                       )}
                     </Draggable>
                   );
