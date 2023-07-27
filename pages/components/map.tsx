@@ -8,7 +8,7 @@ import {
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
 import Spots from "../api/spots";
-import { Place, Campsite } from "@/constants";
+import { Place, Campground, DispersedCampsite, TrailInfo } from "@/constants";
 import askGPT from "../api/spots";
 import { LargeNumberLike } from "crypto";
 import * as FaIcons from 'react-icons/fa';
@@ -31,10 +31,12 @@ export default function GMap() {
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
-  const [selectedTrail, setSelectedTrail] = useState<{name: string; length: number; description: string; system: string; level: string; forest: string; dateRange: string, allowedVehicles: string|undefined, coordinates: google.maps.LatLngLiteral} | undefined>();
+  const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng | undefined>();
-  const [selectedCampsite, setSelectedCampsite] = useState<Campsite | undefined>();
-  const [campsites, setCampsites] = useState<Campsite[]>();
+  const [selectedCampsite, setSelectedCampsite] = useState<Campground | undefined>();
+  const [campgrounds, setCampgrounds] = useState<Campground[]>();
+  const [dispersedCampsites, setDispersedCampsites] = useState<DispersedCampsite[]>();
+  const [sidebar, setSidebar] = useState(true);
 
   const mapRef = useRef<google.maps.Map>();
 
@@ -92,8 +94,6 @@ export default function GMap() {
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, mapBounds]);
 
-      
-
       // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       // const campgrounds = `https://services.arcgis.com/4OV0eRKiLAYkbH2J/arcgis/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/query?where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
@@ -101,8 +101,6 @@ export default function GMap() {
       // geoJsonLayer.loadGeoJson("https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=SITE_NAME&&f=geojson")
       // geoJsonLayer.loadGeoJson('/campsites.geojson')
       // geoJsonLayer.loadGeoJson(campgrounds)
-
-      
 
       geoJsonLayer.setStyle({
         icon: "/camp-icon.png",
@@ -172,19 +170,29 @@ export default function GMap() {
 
         // Set the selected trail to the clicked feature's properties
         setSelectedTrailLoc(event.latLng);
-        setSelectedTrail({name: name, length: length, description: description, system: system, level: level, forest: forestName, dateRange: dateRange, allowedVehicles: allowedVehicles, coordinates: coords});
+
+        const selectedTrail: TrailInfo = {name: name, 
+                                          length: length, 
+                                          description: description, 
+                                          system: system, 
+                                          level: level, 
+                                          forest: forestName, 
+                                          dateRange: dateRange, 
+                                          allowedVehicles: allowedVehicles,
+                                          coordinates: coords }
+        setSelectedTrail(selectedTrail);
       });
       geoJsonLayer.setMap(map);
     }
     mapRef.current = map;
   }
 
-  const fetchRecords = async () => {
+  const fetchCampgrounds = async () => {
     const baseURL =
       "https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&resultRecordCount=2000&f=geojson"
 
     let resultOffset = 0;
-    let allResults: Campsite[] = [];
+    let allResults: Campground[] = [];
     let hasMore = true;
   
     while (hasMore) {
@@ -198,35 +206,30 @@ export default function GMap() {
       allResults = [...allResults, ...data.features];
   
       // If 'exceededTransferLimit' is true, there are more records to fetch
-      if(data.properties){
-        console.log("exceed? ", data.properties.exceededTransferLimit)
-        hasMore = data.properties.exceededTransferLimit;
-      }
-      else {
-        hasMore=false;
-      }
-  
+      hasMore = (data.properties) ? data.properties.exceededTransferLimit : false
+      
       if (hasMore) {
         resultOffset += 2000; // Increment resultOffset by resultRecordCount to fetch the next batch
       }
     }
-  
     return allResults;
   };
+
+  const fetchDispersedCampsites = async() => {
+
+  }
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
 
-
-    fetchRecords()
-      .then((results) => setCampsites(results))
-      .then(()=>console.log("something passed"))
-      .catch((err) => console.error(err));
-
-
-
-
-
+    fetch("../../public")
+      .then((response: DispersedCampsite) => {
+        setDispersedCampsites(response.json())
+      })
+    // fetchCampgrounds()
+    //   .then((results) => setCampgrounds(results))
+    //   .then(()=>console.log("something passed"))
+    //   .catch((err) => console.error(err));
 
     // fetch('https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&f=geojson')
     //   .then(response => response.json())
@@ -265,7 +268,7 @@ export default function GMap() {
     if (!e.latLng) return;
     setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
-  const [sidebar, setSidebar] = useState(true);
+  
 
   function handleOnClick (e: google.maps.MapMouseEvent): void {
     if (selectingPlace) {
@@ -370,7 +373,7 @@ export default function GMap() {
               }}
             >
               <div>
-                <div className="trail">
+                <div className="infoheader">
                   <h2> {selectedCampsite.properties.SITE_NAME}</h2>
                   <AddIcon onClick={handleCampsiteSelect} fontSize="large"/>
                 </div>
@@ -388,7 +391,7 @@ export default function GMap() {
               }}
             >
               <div>
-                <div className="trail">
+                <div className="infoheader">
                   <h2> {selectedTrail.name}</h2>
                   <AddIcon onClick={handleTrailSelect} fontSize="large"/>
                 </div>
