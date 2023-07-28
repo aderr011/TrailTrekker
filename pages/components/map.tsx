@@ -33,10 +33,10 @@ export default function GMap() {
 
   // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
-  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
+  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral | undefined>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
-  const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng | undefined>();
+  const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng>();
   const [selectedCampsite, setSelectedCampsite] = useState<DispersedCampsite | undefined>();
   const [selectedCampground, setSelectedCampground] = useState<Campground | undefined>();
   const [campgrounds, setCampgrounds] = useState<Campground[]>();
@@ -147,16 +147,17 @@ export default function GMap() {
 
         let lat: number;
         let lng: number;
-        if (feature.getGeometry()?.g.length > 1){
-          lat = feature.getGeometry()?.getAt(0).lat()
-          lng = feature.getGeometry()?.getAt(0).lng()
-        }
-        else {
-          name = feature.getProperty("title")
-          description = feature.getProperty("notes")
-          lat = feature.getProperty("latitude")
-          lng = feature.getProperty("longitude")
-        }
+        // name = feature.getProperty("title")
+        description = feature.getProperty("notes")
+        lat = feature.getProperty("latitude")
+        lng = feature.getProperty("longitude")
+        // if (feature.getGeometry()?.g.length > 1){
+        //   lat = feature.getGeometry()?.getAt(0).lat()
+        //   lng = feature.getGeometry()?.getAt(0).lng()
+        // }
+        // else {
+          
+        // }
         
         const coords: google.maps.LatLngLiteral = {lat:lat, lng:lng}
 
@@ -179,6 +180,7 @@ export default function GMap() {
         });
 
         // Set the selected trail to the clicked feature's properties
+        if (!event.latLng) return
         setSelectedTrailLoc(event.latLng);
 
         const selectedTrail: TrailInfo = {name: name, 
@@ -502,7 +504,7 @@ export default function GMap() {
                 <div>
                   <div className="infoheader">
                     <h2> {selectedTrail.name}</h2>
-                    <AddIcon onClick={handleTrailSelect} fontSize="large"/>
+                    {/* <AddIcon onClick={handleTrailSelect} fontSize="large"/> */}
                   </div>
                   
                   {selectedTrail.length && (<p>Length: {selectedTrail.length}mi</p>)}
