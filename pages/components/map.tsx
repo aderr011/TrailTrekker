@@ -1,4 +1,8 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import React from 'react';
+import { toast, ToastContainer, Id } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import {
   GoogleMap,
   Marker,
@@ -8,7 +12,7 @@ import {
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
 import Spots from "../api/spots";
-import { Place, Campsite } from "@/constants";
+import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "@/constants";
 import askGPT from "../api/spots";
 import { LargeNumberLike } from "crypto";
 import * as FaIcons from 'react-icons/fa';
@@ -31,10 +35,17 @@ export default function GMap() {
   const [trailResults, setTrailResults] = useState<Place[]>([]);
   const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
-  const [selectedTrail, setSelectedTrail] = useState<{name: string; length: number; description: string; system: string; level: string; forest: string; dateRange: string, allowedVehicles: string|undefined, coordinates: google.maps.LatLngLiteral} | undefined>();
+  const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng | undefined>();
-  const [selectedCampsite, setSelectedCampsite] = useState<Campsite | undefined>();
-  const [campsites, setCampsites] = useState<Campsite[]>();
+  const [selectedCampsite, setSelectedCampsite] = useState<DispersedCampsite | undefined>();
+  const [selectedCampground, setSelectedCampground] = useState<Campground | undefined>();
+  const [campgrounds, setCampgrounds] = useState<Campground[]>();
+  const [dispersedCampsites, setDispersedCampsites] = useState<DispersedCampsite[]>();
+  const [sidebar, setSidebar] = useState(false);
+  const [showDispersedCampsites, setShowDispersedCampsites] = useState<boolean>(true);
+  const [showCampgrounds, setShowCampgrounds] = useState<boolean>(true);
+  const toastId = React.useRef<Id | undefined>(undefined);
+
 
   const mapRef = useRef<google.maps.Map>();
 
@@ -83,16 +94,18 @@ export default function GMap() {
     }
     
     if (mapZoom > 9) {
+      
       const { east, north, south, west } = mapBounds.toJSON(); 
 
       if ( mapBounds && searchedBounds.length > 0) {
-        if (areBoundsSearched(mapBounds)) return;
+        if (areBoundsSearched(mapBounds)) {
+          return
+        }
       }
+      toastId.current = toast.info("Loading trails", {autoClose:1200});
 
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, mapBounds]);
-
-      
 
       // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
@@ -101,9 +114,7 @@ export default function GMap() {
       // geoJsonLayer.loadGeoJson("https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=SITE_NAME&&f=geojson")
       // geoJsonLayer.loadGeoJson('/campsites.geojson')
       // geoJsonLayer.loadGeoJson(campgrounds)
-
       
-
       geoJsonLayer.setStyle({
         icon: "/camp-icon.png",
         strokeColor: '#066920',
@@ -122,7 +133,6 @@ export default function GMap() {
       };
       
       geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
-        console.log("Clicked!")
         const feature = event.feature;
         geoJsonLayer.overrideStyle(feature, selectedStyle);
 
@@ -148,8 +158,6 @@ export default function GMap() {
           lng = feature.getProperty("longitude")
         }
         
-
-        
         const coords: google.maps.LatLngLiteral = {lat:lat, lng:lng}
 
         // Check the different vehicles that are allowed on trail
@@ -172,61 +180,69 @@ export default function GMap() {
 
         // Set the selected trail to the clicked feature's properties
         setSelectedTrailLoc(event.latLng);
-        setSelectedTrail({name: name, length: length, description: description, system: system, level: level, forest: forestName, dateRange: dateRange, allowedVehicles: allowedVehicles, coordinates: coords});
+
+        const selectedTrail: TrailInfo = {name: name, 
+                                          length: length, 
+                                          description: description, 
+                                          system: system, 
+                                          level: level, 
+                                          forest: forestName, 
+                                          dateRange: dateRange, 
+                                          allowedVehicles: allowedVehicles,
+                                          coordinates: coords }
+        setSelectedTrail(selectedTrail);
       });
       geoJsonLayer.setMap(map);
+      
     }
     mapRef.current = map;
   }
 
-  const fetchRecords = async () => {
+  const fetchCampgrounds = async () => {
     const baseURL =
       "https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&resultRecordCount=2000&f=geojson"
 
     let resultOffset = 0;
-    let allResults: Campsite[] = [];
+    let allResults: Campground[] = [];
     let hasMore = true;
   
     while (hasMore) {
-      console.log(`${baseURL}&resultOffset=${resultOffset.toString()}`)
-  
       const response = await fetch(`${baseURL}&resultOffset=${resultOffset.toString()}`);
       // const response = await fetch(baseURL)
       const data = await response.json();
-      console.log(data)
   
       allResults = [...allResults, ...data.features];
   
       // If 'exceededTransferLimit' is true, there are more records to fetch
-      if(data.properties){
-        console.log("exceed? ", data.properties.exceededTransferLimit)
-        hasMore = data.properties.exceededTransferLimit;
-      }
-      else {
-        hasMore=false;
-      }
-  
+      hasMore = (data.properties) ? data.properties.exceededTransferLimit : false
+      
       if (hasMore) {
         resultOffset += 2000; // Increment resultOffset by resultRecordCount to fetch the next batch
       }
     }
-  
     return allResults;
   };
+
+  const fetchDispersedCampsites = async() => {
+    const response = await fetch("/dispersed_campsites.geojson");
+
+    const data = await response.json();
+
+    return data.features
+  }
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
 
+    fetchDispersedCampsites()
+      .then((results) => setDispersedCampsites(results))
+      .catch((err) => console.log(err));
 
-    fetchRecords()
-      .then((results) => setCampsites(results))
-      .then(()=>console.log("something passed"))
-      .catch((err) => console.error(err));
-
-
-
-
-
+    fetchCampgrounds()
+      .then((results) => setCampgrounds(results))
+      .catch((err) => console.log(err));
+      
+    
 
     // fetch('https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&f=geojson')
     //   .then(response => response.json())
@@ -265,22 +281,27 @@ export default function GMap() {
     if (!e.latLng) return;
     setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
-  const [sidebar, setSidebar] = useState(true);
+  
 
   function handleOnClick (e: google.maps.MapMouseEvent): void {
+    toast.dismiss()
     if (selectingPlace) {
       if (!e.latLng) return;
       const lat: number = e.latLng.lat()
       const lng: number = e.latLng.lng()
       const myPlace: Place = {name: lat + ", " + lng, lat:lat, lng:lng}
+      setSearchResult(myPlace)
       setPlaces([...places, myPlace]);
       setSelectingPlace(false)
+      toast.info("Added location to trip", {autoClose:1500})
     }
   }
 
   function handleTrailSelect() {
     let myPlace: Place;
     if (selectedTrail) {
+      toast.info("Added trail to trip!", {autoClose:1500})
+      setSelectedTrail(undefined)
       const lat: number = selectedTrail.coordinates.lat;
       const lng: number = selectedTrail.coordinates.lng;
       if (selectedTrail.name)
@@ -291,24 +312,45 @@ export default function GMap() {
     }
   }
 
+  function handleCampgroundSelect() {
+    let myPlace: Place;
+    if (selectedCampground) {
+      toast.info("Added campground to trip!", {autoClose:1500})
+      setSelectedCampground(undefined)
+      const lat: number = selectedCampground.geometry.coordinates[1];
+      const lng: number = selectedCampground.geometry.coordinates[0];
+      if (selectedCampground.properties.SITE_NAME)
+        myPlace = {name: selectedCampground.properties.SITE_NAME, lat:lat, lng:lng}
+      else
+        myPlace = {name: lat+", "+lng, lat:lat, lng:lng}
+      setSearchResult(myPlace)
+      setPlaces([...places, myPlace]);
+    }
+  }
+
+  function handleCampgroundClick(index: number) {
+    if (!campgrounds) return;
+    setSelectedCampground(campgrounds[index])
+  }
+
   function handleCampsiteSelect() {
     let myPlace: Place;
     if (selectedCampsite) {
+      toast.info("Added campsite to trip!", {autoClose:1500})
+      setSelectedCampsite(undefined);
       const lat: number = selectedCampsite.geometry.coordinates[1];
       const lng: number = selectedCampsite.geometry.coordinates[0];
-      if (selectedCampsite.properties.SITE_NAME)
-        myPlace = {name: selectedCampsite.properties.SITE_NAME, lat:lat, lng:lng}
-      else
-        myPlace = {name: lat+", "+lng, lat:lat, lng:lng}
+      myPlace = {name: lat+", "+lng, lat:lat, lng:lng}
+      setSearchResult(myPlace)
       setPlaces([...places, myPlace]);
     }
   }
 
   function handleCampsiteClick(index: number) {
-    if (!campsites) return;
-    console.log(campsites[index])
-    setSelectedCampsite(campsites[index])
+    if (!dispersedCampsites) return;
+    setSelectedCampsite(dispersedCampsites[index])
   }
+  
 
   return (
     <div className="container">
@@ -319,7 +361,7 @@ export default function GMap() {
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
-        <TripPlanner places={places} setSelectingPlace={setSelectingPlace} setPlaces={setPlaces} directions={directions} setDirections={setDirections} searchResult={searchResult} campsites={campsites} setCampsites={setCampsites} setSearchResult={(position) => {
+        <TripPlanner places={places} setShowDispersedCampsites={setShowDispersedCampsites} setShowCampgrounds={setShowCampgrounds} showDispersedCampsites={showDispersedCampsites} showCampgrounds={showCampgrounds} setSelectingPlace={setSelectingPlace} setPlaces={setPlaces} directions={directions} setDirections={setDirections} searchResult={searchResult} campgrounds={campgrounds} setCampgrounds={setCampgrounds} setSearchResult={(position) => {
               setSearchResult(position);         
             }}/>
         </div>
@@ -333,23 +375,27 @@ export default function GMap() {
             onClick={handleOnClick}
             onIdle={onIdle}
           >
-            {campsites && (
-              <MarkerClusterer
-              >
-                {clusterer =>
-                  campsites.map((camp:Campsite, i:number) => (
-                    <Marker
-                      icon="/tent-icon.png"
-                      key={i}
-                      position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
-                      clusterer={clusterer}
-                      onClick={()=>handleCampsiteClick(i)}
-                    />
 
-                  ))
-                }
-              </MarkerClusterer>
+
+            <ToastContainer 
+              position="bottom-center"
+              draggable
+              autoClose={false} 
+              theme="light"
+              hideProgressBar={true}
+            />
+
+
+            {(searchResult && !directions) && (
+              <>
+                <Marker
+                  position={searchResult}
+                />
+              </>
             )}
+
+
+
             {directions && (
               <DirectionsRenderer
                 directions={directions}
@@ -362,58 +408,114 @@ export default function GMap() {
                 }}
               />
             )}
-            {selectedCampsite && (
-            <InfoWindow
-              position={{lat: selectedCampsite.geometry.coordinates[1], lng: selectedCampsite.geometry.coordinates[0]}}
-              onCloseClick={() => {
-                setSelectedCampsite(undefined);
-              }}
-            >
-              <div>
-                <div className="trail">
-                  <h2> {selectedCampsite.properties.SITE_NAME}</h2>
-                  <AddIcon onClick={handleCampsiteSelect} fontSize="large"/>
-                </div>
-                {selectedCampsite.properties.AGENCY && (<p>Agency: {selectedCampsite.properties.AGENCY}</p>)}
-                {selectedCampsite.properties.TYPE && (<p>Type of Site: {selectedCampsite.properties.TYPE}</p>)}
-                {(selectedCampsite.geometry.coordinates[1] && selectedCampsite.geometry.coordinates[0]) && (<p>Coordinates: ({selectedCampsite.geometry.coordinates[1].toFixed(4)}, {selectedCampsite.geometry.coordinates[0].toFixed(4)})</p>)}
-              </div>
-            </InfoWindow>
-          )}
-            {selectedTrail && (
-            <InfoWindow
-              position={selectedTrailLoc}
-              onCloseClick={() => {
-                setSelectedTrail(undefined);
-              }}
-            >
-              <div>
-                <div className="trail">
-                  <h2> {selectedTrail.name}</h2>
-                  <AddIcon onClick={handleTrailSelect} fontSize="large"/>
-                </div>
-                
-                {selectedTrail.length && (<p>Length: {selectedTrail.length}mi</p>)}
-                {selectedTrail.forest && (<p>Forest: {selectedTrail.forest}</p>)}
-                {selectedTrail.system && (<p>System: {selectedTrail.system}</p>)}
-                {selectedTrail.dateRange && (<p>Dates Open: {selectedTrail.dateRange}</p>)}
-                {selectedTrail.description && (<p>Description: {selectedTrail.description}</p>)}
-                {selectedTrail.level && (<p>Level: {selectedTrail.level}</p>)}
-                {selectedTrail.dateRange && (<p>Vehicles Allowed: {selectedTrail.allowedVehicles}</p>)}
-              </div>
-            </InfoWindow>
-          )}
 
-            {(searchResult && !directions) && (
-              <>
-                <Marker
-                  position={searchResult}
-                />
-              </>
-            )}
+
+
             {trailResults && (
               <Spots searchTrailsLoc={searchTrailsLoc} setTrailResults={setTrailResults} trailResults={trailResults}/>
             )}
+
+
+            {(showDispersedCampsites && dispersedCampsites) && (
+              <MarkerClusterer>
+                {clusterer =>
+                  dispersedCampsites.map((camp:DispersedCampsite, i:number) => (
+                    <Marker
+                      icon="/tent-icon.png"
+                      key={i}
+                      position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
+                      clusterer={clusterer}
+                      onClick={()=>handleCampsiteClick(i)}
+                    />
+
+                  ))
+                }
+              </MarkerClusterer>
+            )}
+
+            
+            {(showCampgrounds && campgrounds) && (
+              <MarkerClusterer>
+                {clusterer =>
+                  campgrounds.map((camp:Campground, i:number) => (
+                    <Marker
+                      icon="/tent-icon.png"
+                      key={i}
+                      position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
+                      clusterer={clusterer}
+                      onClick={()=>handleCampgroundClick(i)}
+                    />
+
+                  ))
+                }
+              </MarkerClusterer>
+            )}
+
+
+            {selectedCampground && (
+              <InfoWindow
+                position={{lat: selectedCampground.geometry.coordinates[1], lng: selectedCampground.geometry.coordinates[0]}}
+                onCloseClick={() => {
+                  setSelectedCampground(undefined);
+                }}
+              >
+                <div>
+                  <div className="infoheader">
+                    <h2> {selectedCampground.properties.SITE_NAME}</h2>
+                    <AddIcon onClick={handleCampgroundSelect} fontSize="large"/>
+                  </div>
+                  {selectedCampground.properties.TYPE && (<p>Type of Site: {selectedCampground.properties.TYPE}</p>)}
+                  {selectedCampground.properties.AGENCY && (<p>Agency: {selectedCampground.properties.AGENCY}</p>)}
+                  {(selectedCampground.geometry.coordinates[1] && selectedCampground.geometry.coordinates[0]) && (<p>Coordinates: ({selectedCampground.geometry.coordinates[1].toFixed(4)}, {selectedCampground.geometry.coordinates[0].toFixed(4)})</p>)}
+                </div>
+              </InfoWindow>
+            )}
+
+
+            {selectedCampsite && (
+              <InfoWindow
+                position={{lat: selectedCampsite.geometry.coordinates[1], lng: selectedCampsite.geometry.coordinates[0]}}
+                onCloseClick={() => {
+                  setSelectedCampsite(undefined);
+                }}
+              >
+                <div>
+                  <div className="infoheader">
+                    <h2> {selectedCampsite.properties.title}</h2>
+                    <AddIcon onClick={handleCampsiteSelect} fontSize="large"/>
+                  </div>
+                  <p>Type of Site: Dispersed Campsite</p>
+                  {selectedCampsite.properties.elevation && (<p>Elevation: {selectedCampsite.properties.elevation}ft</p>)}
+                  {(selectedCampsite.geometry.coordinates[1] && selectedCampsite.geometry.coordinates[0]) && (<p>Coordinates: ({selectedCampsite.geometry.coordinates[1].toFixed(4)}, {selectedCampsite.geometry.coordinates[0].toFixed(4)})</p>)}
+                </div>
+              </InfoWindow>
+            )}
+
+
+            {selectedTrail && (
+              <InfoWindow
+                position={selectedTrailLoc}
+                onCloseClick={() => {
+                  setSelectedTrail(undefined);
+                }}
+              >
+                <div>
+                  <div className="infoheader">
+                    <h2> {selectedTrail.name}</h2>
+                    <AddIcon onClick={handleTrailSelect} fontSize="large"/>
+                  </div>
+                  
+                  {selectedTrail.length && (<p>Length: {selectedTrail.length}mi</p>)}
+                  {selectedTrail.forest && (<p>Forest: {selectedTrail.forest}</p>)}
+                  {selectedTrail.system && (<p>System: {selectedTrail.system}</p>)}
+                  {selectedTrail.dateRange && (<p>Dates Open: {selectedTrail.dateRange}</p>)}
+                  {selectedTrail.description && (<p>Description: {selectedTrail.description}</p>)}
+                  {selectedTrail.level && (<p>Level: {selectedTrail.level}</p>)}
+                  {selectedTrail.dateRange && (<p>Vehicles Allowed: {selectedTrail.allowedVehicles}</p>)}
+                </div>
+              </InfoWindow>
+            )}
+
           </GoogleMap>
       </div>
     </div>

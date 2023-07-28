@@ -4,14 +4,14 @@ export type Place = {
     lng: number;
 };
 
-export type Campsite = {
+export type Campground = {
     geometry: Geometry;
     id: number;
-    properties: Properties;
+    properties: CampgroundProperties;
     type: string;
 }
 
-type Properties = {
+export type CampgroundProperties = {
     FID: number;
     SITE_NAME: string;
     QUANTITY: number;
@@ -19,7 +19,68 @@ type Properties = {
     AGENCY: string;
 }
 
-type Geometry = {
+export type Geometry = {
     type: string;
     coordinates: Array<number>;
 }
+
+export type TrailInfo = {
+    name: string; 
+    length: number; 
+    description: string; 
+    system: string; 
+    level: string; 
+    forest: string; 
+    dateRange: string; 
+    allowedVehicles: string|undefined; 
+    coordinates: google.maps.LatLngLiteral;
+}
+
+export type DispersedCampsite = {
+    type: string;
+    geometry: Geometry;
+    id: number;
+    properties: CampsiteProperties;
+    
+}
+
+export type CampsiteProperties = {
+    id: string;
+    updated_date: string;
+    time_created: string;
+    deleted: boolean;
+    title: string;
+    public: boolean;
+    is_active: boolean;
+    icon: string;
+    revision: number;
+    notes: string;
+    latitude: number;
+    longitude: number;
+    elevation: number;
+    attr: string;
+    track_id: string;
+    photos: Array<string>;
+    order: string;
+    folder: string;
+    marker_type: string;
+    marker_color: string;
+    marker_decoration: string;
+}
+
+export type SitesStructureProperties = {
+    id: string;
+    name: string;
+    updated_date: string;
+    time_created: string;
+    notes: string;
+    cover_photo_id: string;
+}
+
+export type SitesStructure = {
+    type: string;
+    id: string;
+    properties: SitesStructureProperties;
+    features: Array<DispersedCampsite>;
+}
+

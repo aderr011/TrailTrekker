@@ -1,4 +1,5 @@
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { toast, ToastContainer } from 'react-toastify';
 import { useState, useEffect } from "react";
 import { Place } from "../../constants";
 import MenuIcon from '@mui/icons-material/Menu';
@@ -60,7 +61,7 @@ export default function Itinerary({ places, setPlaces, setSearchResult, setDirec
               <List 
                   {...provided.droppableProps} 
                   ref={provided.innerRef}
-                  sx={{ width: "100%", position: 'relative', alignItems: 'right', alignContent: 'right', alignSelf:'right', textAlign: 'right', maxWidth: 400, maxHeight: "70vh", overflow: 'auto'}}
+                  className="itinarary-items"
               >
                 {places.map(({name, lat, lng}, indexNum) => {
                   return (

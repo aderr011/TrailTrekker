@@ -7,7 +7,7 @@ import usePlacesAutocomplete, {
   import "@reach/combobox/styles.css";
   import Search from "./Search";
   import Itinerary from "./itinerary";
-  import { Place, Campsite } from "../../constants";
+  import { Place, Campground } from "../../constants";
 
 
   
@@ -19,11 +19,15 @@ import usePlacesAutocomplete, {
     places: (Place[]);
     setPlaces : (list: Place[]) => void;
     setSelectingPlace: (tf: boolean) => void;
-    campsites: (Campsite[] | undefined);
-    setCampsites: (campsites: Campsite[] | undefined) => void;
+    campgrounds: (Campground[] | undefined);
+    setCampgrounds: (campgrounds: Campground[] | undefined) => void;
+    showCampgrounds: (boolean);
+    setShowCampgrounds: (fort: boolean) => void;
+    showDispersedCampsites: (boolean);
+    setShowDispersedCampsites: (fort: boolean) => void;
   };
   
-  export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections, campsites, setCampsites }: TripPlannerProps) {
+  export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections, campgrounds, setCampgrounds, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites }: TripPlannerProps) {
     const [routeData, setRouteData] = useState<google.maps.DirectionsLeg[] | undefined>();
 
     const {
@@ -46,8 +50,12 @@ import usePlacesAutocomplete, {
                 setRouteData={(data) => {
                   setRouteData(data)         
                 }}
-                setCampsites={setCampsites}
-                campsites={campsites}
+                setCampgrounds={setCampgrounds}
+                campgrounds={campgrounds}
+                showCampgrounds={showCampgrounds}
+                setShowCampgrounds={setShowCampgrounds}
+                showDispersedCampsites={showDispersedCampsites}
+                setShowDispersedCampsites={setShowDispersedCampsites}
         />
 
         {places && (

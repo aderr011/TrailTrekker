@@ -9,11 +9,12 @@ import {
   ComboboxList,
   ComboboxOption,
 } from "@reach/combobox";
-import { Modal,Paper,Typography, 
-Box } from '@mui/material';
+import { Modal,Paper,Typography, Box, FormGroup, FormControlLabel, Switch } from '@mui/material';
+import { toast, ToastContainer, Id } from 'react-toastify';
+
 
 import "@reach/combobox/styles.css";
-import { Place, Campsite } from "../../constants";
+import { Place, Campground } from "../../constants";
 import { useState, useEffect } from "react";
 import  askGPT  from "../api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
@@ -31,11 +32,15 @@ type SearchProps = {
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;
   setSelectingPlace: (tf: boolean) => void;
-  campsites: (Campsite[] | undefined);
-  setCampsites: (campsites: Campsite[] | undefined) => void;
+  campgrounds: (Campground[] | undefined);
+  setCampgrounds: (campgrounds: Campground[] | undefined) => void;
+  showCampgrounds: (boolean);
+  setShowCampgrounds: (fort: boolean) => void;
+  showDispersedCampsites: (boolean);
+  setShowDispersedCampsites: (fort: boolean) => void;
 };
 
-export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData, campsites, setCampsites }: SearchProps) {
+export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData, campgrounds, setCampgrounds, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites }: SearchProps) {
   var myPlace : Place;
   const {
     ready,
@@ -45,7 +50,6 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     clearSuggestions,
   } = usePlacesAutocomplete();
 
-  const[ result, setResult] = useState<string>("");
   const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
   const [gMapsLink, setGMapsLink] = useState<string>();
  
@@ -139,11 +143,15 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
   };
   function handlePlaceClick (): void {
     setSelectingPlace(true);
+    toast.info("Click on map to add location", {onClose:() => setSelectingPlace(false)})
   }
 
-  const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const [openExport, setOpenExport] = useState(false);
+  const [openSettings, setOpenSettings] = useState(false);
+  const handleOpenExport = () => setOpenExport(true);
+  const handleCloseExport = () => setOpenExport(false);
+  const handleOpenSettings = () => setOpenSettings(true);
+  const handleCloseSettings = () => setOpenSettings(false);
 
   const style = {
     position: "absolute",
@@ -155,13 +163,12 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-    zIndex: 9999999999999999999,
+    zIndex: 999999999,
 };
 
 function generateGoogleMapsLink(start: string, end: string, waypoints: Place[]) {
   if (!start || !end) return;
   const baseUrl:string = "https://www.google.com/maps/dir/";
-  console.log(waypoints);
   const waypointStr:string = waypoints.map((wp: any) => `${wp.lat},${wp.lng}`).join('/');
   const startStr:string = start.replace(/ /g, '+');
   const destStr:string = end.replace(/ /g, "+");
@@ -204,16 +211,12 @@ function handleCopy() {
       </ComboboxPopover>
     </Combobox>
     <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick}/>
-    <IosShareIcon  onClick={()=>setOpen(!open)} sx={{marginLeft: '10px'}}/>
-    <TuneIcon onClick={()=>{
-      let dispersed = campsites.filter(campsite => campsite.properties.TYPE.includes("CAMPING UNIT"));
-      setCampsites(dispersed);
-    }} 
-    sx={{marginLeft: '10px'}}/>
+    <IosShareIcon  onClick={()=>setOpenExport(!openExport)} sx={{marginLeft: '10px'}}/>
+    <TuneIcon onClick={()=>setOpenSettings(!openSettings)} sx={{marginLeft: '10px'}}/>
     <div>
       <Modal
-        open={open}
-        onClose={handleClose}
+        open={openExport}
+        onClose={handleCloseExport}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -227,6 +230,30 @@ function handleCopy() {
         value={gMapsLink}
         InputProps={{endAdornment: <ContentCopyIcon onClick={handleCopy}/>}}
       />
+          
+        </Box>
+      </Modal>
+    </div>
+    <div>
+      <Modal
+        open={openSettings}
+        onClose={handleCloseSettings}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={ style}>
+        <Typography variant="h6" component="h2">
+            Camp Types
+          </Typography>
+          <br/>
+          <FormGroup>
+            <FormControlLabel control={
+              <Switch checked={showDispersedCampsites} onChange={() => setShowDispersedCampsites(!showDispersedCampsites)} />
+              } label="Dispersed Campsites" />
+            <FormControlLabel control={
+            <Switch checked={showCampgrounds} onChange={() => setShowCampgrounds(!showCampgrounds)} />
+              } label="Campgrounds" />
+          </FormGroup>
           
         </Box>
       </Modal>
