@@ -9,11 +9,12 @@ import {
   ComboboxList,
   ComboboxOption,
 } from "@reach/combobox";
-import { Modal,Paper,Typography, 
-Box } from '@mui/material';
+import { Modal,Paper,Typography, Box } from '@mui/material';
+import { toast, ToastContainer, Id } from 'react-toastify';
+
 
 import "@reach/combobox/styles.css";
-import { Place, Campsite } from "../../constants";
+import { Place, Campground } from "../../constants";
 import { useState, useEffect } from "react";
 import  askGPT  from "../api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
@@ -31,11 +32,11 @@ type SearchProps = {
   setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;
   setSelectingPlace: (tf: boolean) => void;
-  campsites: (Campsite[] | undefined);
-  setCampsites: (campsites: Campsite[] | undefined) => void;
+  campgrounds: (Campground[] | undefined);
+  setCampgrounds: (campgrounds: Campground[] | undefined) => void;
 };
 
-export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData, campsites, setCampsites }: SearchProps) {
+export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData, campgrounds, setCampgrounds }: SearchProps) {
   var myPlace : Place;
   const {
     ready,
@@ -45,7 +46,6 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     clearSuggestions,
   } = usePlacesAutocomplete();
 
-  const[ result, setResult] = useState<string>("");
   const[ placesLatLng, setPlacesLatLng] = useState<google.maps.LatLngLiteral[]>([]);
   const [gMapsLink, setGMapsLink] = useState<string>();
  
@@ -139,6 +139,7 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
   };
   function handlePlaceClick (): void {
     setSelectingPlace(true);
+    toast.info("Click on map to add location")
   }
 
   const [open, setOpen] = useState(false);
@@ -155,7 +156,7 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-    zIndex: 9999999999999999999,
+    zIndex: 999999999,
 };
 
 function generateGoogleMapsLink(start: string, end: string, waypoints: Place[]) {
@@ -206,8 +207,8 @@ function handleCopy() {
     <PlaceIcon sx={{marginLeft: '10px'}} onClick={handlePlaceClick}/>
     <IosShareIcon  onClick={()=>setOpen(!open)} sx={{marginLeft: '10px'}}/>
     <TuneIcon onClick={()=>{
-      let dispersed = campsites.filter(campsite => campsite.properties.TYPE.includes("CAMPING UNIT"));
-      setCampsites(dispersed);
+      let sites = campgrounds.filter(campground => campground.properties.TYPE.includes("CAMPING UNIT"));
+      setCampgrounds(sites);
     }} 
     sx={{marginLeft: '10px'}}/>
     <div>

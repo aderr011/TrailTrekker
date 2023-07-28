@@ -1,4 +1,8 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import React from 'react';
+import { toast, ToastContainer, Id } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import {
   GoogleMap,
   Marker,
@@ -8,7 +12,7 @@ import {
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
 import Spots from "../api/spots";
-import { Place, Campground, DispersedCampsite, TrailInfo } from "@/constants";
+import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "@/constants";
 import askGPT from "../api/spots";
 import { LargeNumberLike } from "crypto";
 import * as FaIcons from 'react-icons/fa';
@@ -36,7 +40,11 @@ export default function GMap() {
   const [selectedCampsite, setSelectedCampsite] = useState<Campground | undefined>();
   const [campgrounds, setCampgrounds] = useState<Campground[]>();
   const [dispersedCampsites, setDispersedCampsites] = useState<DispersedCampsite[]>();
-  const [sidebar, setSidebar] = useState(true);
+  const [sidebar, setSidebar] = useState(false);
+  const [showDispersedCampsites, setShowDispersedCampsites] = useState<boolean>(true);
+  const [showCampgrounds, setShowCampgrounds] = useState<boolean>(true);
+  const toastId = React.useRef<Id | undefined>(undefined);
+
 
   const mapRef = useRef<google.maps.Map>();
 
@@ -85,11 +93,15 @@ export default function GMap() {
     }
     
     if (mapZoom > 9) {
+      
       const { east, north, south, west } = mapBounds.toJSON(); 
 
       if ( mapBounds && searchedBounds.length > 0) {
-        if (areBoundsSearched(mapBounds)) return;
+        if (areBoundsSearched(mapBounds)) {
+          return
+        }
       }
+      toastId.current = toast.info("Loading trails", {autoClose:1200});
 
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, mapBounds]);
@@ -101,7 +113,7 @@ export default function GMap() {
       // geoJsonLayer.loadGeoJson("https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=SITE_NAME&&f=geojson")
       // geoJsonLayer.loadGeoJson('/campsites.geojson')
       // geoJsonLayer.loadGeoJson(campgrounds)
-
+      
       geoJsonLayer.setStyle({
         icon: "/camp-icon.png",
         strokeColor: '#066920',
@@ -120,6 +132,7 @@ export default function GMap() {
       };
       
       geoJsonLayer.addListener("click", (event:google.maps.Data.MouseEvent) => {
+        
         console.log("Clicked!")
         const feature = event.feature;
         geoJsonLayer.overrideStyle(feature, selectedStyle);
@@ -145,8 +158,6 @@ export default function GMap() {
           lat = feature.getProperty("latitude")
           lng = feature.getProperty("longitude")
         }
-        
-
         
         const coords: google.maps.LatLngLiteral = {lat:lat, lng:lng}
 
@@ -183,6 +194,7 @@ export default function GMap() {
         setSelectedTrail(selectedTrail);
       });
       geoJsonLayer.setMap(map);
+      
     }
     mapRef.current = map;
   }
@@ -216,20 +228,25 @@ export default function GMap() {
   };
 
   const fetchDispersedCampsites = async() => {
+    const response = await fetch("/dispersed_campsites.geojson");
 
+    const data = await response.json();
+
+    return data.features
   }
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
 
-    fetch("../../public")
-      .then((response: DispersedCampsite) => {
-        setDispersedCampsites(response.json())
-      })
-    // fetchCampgrounds()
-    //   .then((results) => setCampgrounds(results))
-    //   .then(()=>console.log("something passed"))
-    //   .catch((err) => console.error(err));
+    fetchDispersedCampsites()
+      .then((results) => setDispersedCampsites(results))
+      .catch((err) => console.log(err));
+
+    fetchCampgrounds()
+      .then((results) => setCampgrounds(results))
+      .catch((err) => console.log(err));
+      
+    
 
     // fetch('https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&f=geojson')
     //   .then(response => response.json())
@@ -271,11 +288,13 @@ export default function GMap() {
   
 
   function handleOnClick (e: google.maps.MapMouseEvent): void {
+    toast.dismiss()
     if (selectingPlace) {
       if (!e.latLng) return;
       const lat: number = e.latLng.lat()
       const lng: number = e.latLng.lng()
       const myPlace: Place = {name: lat + ", " + lng, lat:lat, lng:lng}
+      setSearchResult(myPlace)
       setPlaces([...places, myPlace]);
       setSelectingPlace(false)
     }
@@ -308,9 +327,9 @@ export default function GMap() {
   }
 
   function handleCampsiteClick(index: number) {
-    if (!campsites) return;
-    console.log(campsites[index])
-    setSelectedCampsite(campsites[index])
+    if (!campgrounds) return;
+    console.log(campgrounds[index])
+    setSelectedCampsite(campgrounds[index])
   }
 
   return (
@@ -322,7 +341,7 @@ export default function GMap() {
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
-        <TripPlanner places={places} setSelectingPlace={setSelectingPlace} setPlaces={setPlaces} directions={directions} setDirections={setDirections} searchResult={searchResult} campsites={campsites} setCampsites={setCampsites} setSearchResult={(position) => {
+        <TripPlanner places={places} setSelectingPlace={setSelectingPlace} setPlaces={setPlaces} directions={directions} setDirections={setDirections} searchResult={searchResult} campgrounds={campgrounds} setCampgrounds={setCampgrounds} setSearchResult={(position) => {
               setSearchResult(position);         
             }}/>
         </div>
@@ -336,11 +355,36 @@ export default function GMap() {
             onClick={handleOnClick}
             onIdle={onIdle}
           >
-            {campsites && (
+            <ToastContainer 
+              position="bottom-center"
+              draggable
+              autoClose={false} 
+              theme="light"
+              hideProgressBar={true}
+            />
+
+            {(showDispersedCampsites && dispersedCampsites) && (
               <MarkerClusterer
               >
                 {clusterer =>
-                  campsites.map((camp:Campsite, i:number) => (
+                  dispersedCampsites.map((camp:DispersedCampsite, i:number) => (
+                    <Marker
+                      icon="/tent-icon.png"
+                      key={i}
+                      position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
+                      clusterer={clusterer}
+                      onClick={()=>handleCampsiteClick(i)}
+                    />
+
+                  ))
+                }
+              </MarkerClusterer>
+            )}
+            {(showCampgrounds && campgrounds) && (
+              <MarkerClusterer
+              >
+                {clusterer =>
+                  campgrounds.map((camp:Campground, i:number) => (
                     <Marker
                       icon="/tent-icon.png"
                       key={i}

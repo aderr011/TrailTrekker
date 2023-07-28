@@ -106,6 +106,7 @@ a {
 
 .nav-menu {
   background-color: #060b26;
+  max-width: 600px;
   height: 100vh;
   justify-content: center;
   position: fixed;
@@ -128,4 +129,11 @@ a {
 .nav-menu.active {
   left: 0;
   transition: 350ms;
+}
+
+.itinerary-items { 
+  width: "100%";
+  position: 'relative';
+  max-height: "70vh";
+  overflow: 'auto';
 }
