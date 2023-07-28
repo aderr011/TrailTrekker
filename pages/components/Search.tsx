@@ -143,7 +143,7 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
   };
   function handlePlaceClick (): void {
     setSelectingPlace(true);
-    toast.info("Click on map to add location")
+    toast.info("Click on map to add location", {onClose:() => setSelectingPlace(false)})
   }
 
   const [openExport, setOpenExport] = useState(false);

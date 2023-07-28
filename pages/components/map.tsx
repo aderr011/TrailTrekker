@@ -285,7 +285,6 @@ export default function GMap() {
 
   function handleOnClick (e: google.maps.MapMouseEvent): void {
     toast.dismiss()
-    toast.info("Added location to trip", {autoClose:1500})
     if (selectingPlace) {
       if (!e.latLng) return;
       const lat: number = e.latLng.lat()
@@ -294,6 +293,7 @@ export default function GMap() {
       setSearchResult(myPlace)
       setPlaces([...places, myPlace]);
       setSelectingPlace(false)
+      toast.info("Added location to trip", {autoClose:1500})
     }
   }
 
@@ -350,6 +350,7 @@ export default function GMap() {
     if (!dispersedCampsites) return;
     setSelectedCampsite(dispersedCampsites[index])
   }
+  
 
   return (
     <div className="container">
@@ -416,8 +417,7 @@ export default function GMap() {
 
 
             {(showDispersedCampsites && dispersedCampsites) && (
-              <MarkerClusterer
-              >
+              <MarkerClusterer>
                 {clusterer =>
                   dispersedCampsites.map((camp:DispersedCampsite, i:number) => (
                     <Marker
@@ -435,8 +435,7 @@ export default function GMap() {
 
             
             {(showCampgrounds && campgrounds) && (
-              <MarkerClusterer
-              >
+              <MarkerClusterer>
                 {clusterer =>
                   campgrounds.map((camp:Campground, i:number) => (
                     <Marker
