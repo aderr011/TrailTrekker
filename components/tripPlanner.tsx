@@ -1,15 +1,10 @@
-import { useState, useMemo, useCallback, useRef } from "react";
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-  } from "use-places-autocomplete";
+import { useState } from "react";
+import usePlacesAutocomplete from "use-places-autocomplete";
 
   import "@reach/combobox/styles.css";
   import Search from "./Search";
   import Itinerary from "./itinerary";
-  import { Place, Campground } from "../../constants";
-
-
+  import { Place, Campground } from "../constants";
   
   type TripPlannerProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;

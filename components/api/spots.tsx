@@ -6,135 +6,135 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 
-const configuration = new Configuration({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-});
-const myOpenai = new OpenAIApi(configuration);
+// const configuration = new Configuration({
+//   apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+// });
+// const myOpenai = new OpenAIApi(configuration);
 
-type SearchProps = {
+type SpotsProps = {
   searchTrailsLoc : (google.maps.LatLngLiteral | undefined);
   setTrailResults : (places: Place[]) => void;
   trailResults : (Place[]);
 };
 
-export default function Spots({searchTrailsLoc, setTrailResults, trailResults}: SearchProps) {
-  async function askGPT(searchLoc: Place) {
-    if (!searchLoc) return;
-    if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
+export default function Spots({searchTrailsLoc, setTrailResults, trailResults}: SpotsProps) {
+//   async function askGPT(searchLoc: Place) {
+//     if (!searchLoc) return;
+//     if (!configuration.apiKey) throw new Error("OpenAI API key not configured, please follow instructions in README.md");
   
-    const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
-    const address = searchLoc.name;
-    console.log("Coordinate: " + coordinates + "\nAddress: " + address);
-    if (coordinates.trim().length === 0) throw new Error("Please enter a valid set of coordinates");
+//     const coordinates = "(" + searchLoc.lat + ", " + searchLoc.lng + ")";
+//     const address = searchLoc.name;
+//     console.log("Coordinate: " + coordinates + "\nAddress: " + address);
+//     if (coordinates.trim().length === 0) throw new Error("Please enter a valid set of coordinates");
   
-    const chatGptMessages = [
-      {
-        role: ChatCompletionRequestMessageRoleEnum.System,
-        content: "You are a helpful assistant who returns a list of Motor Vehicle Use trails within 30 miles of a given a coordinate and/or coordinate",
-      },
-      {
-        role: ChatCompletionRequestMessageRoleEnum.User,
-        content: `Coordinate: (40.69948501341462, -105.5812484182215)`,
-      },
-      {
-        role: ChatCompletionRequestMessageRoleEnum.Assistant,
-        content: `name:Kelly Flats Road
-lat:40.682875
-lng:-105.482818
+//     const chatGptMessages = [
+//       {
+//         role: ChatCompletionRequestMessageRoleEnum.System,
+//         content: "You are a helpful assistant who returns a list of Motor Vehicle Use trails within 30 miles of a given a coordinate and/or coordinate",
+//       },
+//       {
+//         role: ChatCompletionRequestMessageRoleEnum.User,
+//         content: `Coordinate: (40.69948501341462, -105.5812484182215)`,
+//       },
+//       {
+//         role: ChatCompletionRequestMessageRoleEnum.Assistant,
+//         content: `name:Kelly Flats Road
+// lat:40.682875
+// lng:-105.482818
   
-name:Old Flowers Road
-lat:40.619240
-lng:-105.357196
+// name:Old Flowers Road
+// lat:40.619240
+// lng:-105.357196
   
-name:Deadman Road
-lat:40.792491 
-lng:-105.603987
+// name:Deadman Road
+// lat:40.792491 
+// lng:-105.603987
   
-name:Roaring Creek Road
-lat40.805946 
-lng:-105.772568
+// name:Roaring Creek Road
+// lat40.805946 
+// lng:-105.772568
   
-name:Swamp Creek Road
-lat:40.751547
-lng:-105.616751
+// name:Swamp Creek Road
+// lat:40.751547
+// lng:-105.616751
   
-name:Crown Point Road
-lat:40.654853
-lng:-105.526077
+// name:Crown Point Road
+// lat:40.654853
+// lng:-105.526077
   
-name:Bald Mountain
-lat:40.762935 
-lng:-105.612523`,
-      },
-      {
-        role: ChatCompletionRequestMessageRoleEnum.User,
-        content: "Coordinate: " + coordinates,
-      },
-    ]
+// name:Bald Mountain
+// lat:40.762935 
+// lng:-105.612523`,
+//       },
+//       {
+//         role: ChatCompletionRequestMessageRoleEnum.User,
+//         content: "Coordinate: " + coordinates,
+//       },
+//     ]
   
-    try {
-      console.log("Sending request")
-      const response = await myOpenai.createChatCompletion({
-        messages: chatGptMessages,
-        model: 'gpt-3.5-turbo',
-      });
+//     try {
+//       console.log("Sending request")
+//       const response = await myOpenai.createChatCompletion({
+//         messages: chatGptMessages,
+//         model: 'gpt-3.5-turbo',
+//       });
   
-      let placesList: Place[] = [];
-      console.log(response.data.choices[0].message?.content);
-      const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n\n');
-      if (!lines || lines.length < 2) return;
-      console.log(lines);
+//       let placesList: Place[] = [];
+//       console.log(response.data.choices[0].message?.content);
+//       const lines: string[] | undefined = response.data.choices[0].message?.content.split('\n\n');
+//       if (!lines || lines.length < 2) return;
+//       console.log(lines);
   
-       const places: string[] = lines.filter(function(line) {
-        if (!line.startsWith("name")) return false;
-        return true;
-      })
-      console.log("The Lines: ")
-      console.log(places);
+//        const places: string[] = lines.filter(function(line) {
+//         if (!line.startsWith("name")) return false;
+//         return true;
+//       })
+//       console.log("The Lines: ")
+//       console.log(places);
 
-      placesList = places.map((placeString) => {
-        const lines = placeString.trim().split("\n");
-        var name: string = (lines[0]) ? lines[0].split(":")[1].trim(): "";
-        var lat: number = (lines[1]) ? parseFloat(lines[1].split(":")[1].trim()): 0;
-        var lng: number = (lines[2]) ? parseFloat(lines[2].split(":")[1].trim()): 0;
-        return { name, lat, lng };
-      });
-      console.log("The Places List:")
-      console.log(placesList);
-      setTrailResults(placesList);
-    } catch(error: any) {
-      if (error.response) {
-        console.error(error.response.status, error.response.data);
-      } else {
-        console.error(`Error with OpenAI API request: ${error.message}`);
-      }
-    }
-  }
+//       placesList = places.map((placeString) => {
+//         const lines = placeString.trim().split("\n");
+//         var name: string = (lines[0]) ? lines[0].split(":")[1].trim(): "";
+//         var lat: number = (lines[1]) ? parseFloat(lines[1].split(":")[1].trim()): 0;
+//         var lng: number = (lines[2]) ? parseFloat(lines[2].split(":")[1].trim()): 0;
+//         return { name, lat, lng };
+//       });
+//       console.log("The Places List:")
+//       console.log(placesList);
+//       setTrailResults(placesList);
+//     } catch(error: any) {
+//       if (error.response) {
+//         console.error(error.response.status, error.response.data);
+//       } else {
+//         console.error(`Error with OpenAI API request: ${error.message}`);
+//       }
+//     }
+//   }
 
-  //Whenever the searchTrailsLoc changes we call chatGPT 
-  useEffect(() => {
-    if (!searchTrailsLoc?.lat || !searchTrailsLoc?.lng) return;
-    var myPlace: Place = {name:"", lat:searchTrailsLoc?.lat, lng:searchTrailsLoc?.lng};
-    askGPT(myPlace);
-  }, [searchTrailsLoc]);
+//   //Whenever the searchTrailsLoc changes we call chatGPT 
+//   useEffect(() => {
+//     if (!searchTrailsLoc?.lat || !searchTrailsLoc?.lng) return;
+//     var myPlace: Place = {name:"", lat:searchTrailsLoc?.lat, lng:searchTrailsLoc?.lng};
+//     askGPT(myPlace);
+//   }, [searchTrailsLoc]);
 
-  return (
-    <MarkerClusterer>
-      {(clusterer) =>
-        trailResults.map((trail) => (
-          <Marker
-            key={trail.lat}
-            position={trail}
-            clusterer={clusterer}
-            label={trail.name}
-            // onClick={() => {
-            //   fetchDirections(trail);
-            // }}
-          />
-        ))
-      }
-    </MarkerClusterer>
-  ); 
+//   return (
+//     <MarkerClusterer>
+//       {(clusterer) =>
+//         trailResults.map((trail) => (
+//           <Marker
+//             key={trail.lat}
+//             position={trail}
+//             clusterer={clusterer}
+//             label={trail.name}
+//             // onClick={() => {
+//             //   fetchDirections(trail);
+//             // }}
+//           />
+//         ))
+//       }
+//     </MarkerClusterer>
+//   ); 
 }
 
   const preprevPropmt=`name:Kelly Flats Road

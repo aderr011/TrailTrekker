@@ -14,9 +14,9 @@ import { toast, ToastContainer, Id } from 'react-toastify';
 
 
 import "@reach/combobox/styles.css";
-import { Place, Campground } from "../../constants";
+import { Place, Campground } from "../constants";
 import { useState, useEffect } from "react";
-import  askGPT  from "../api/spots"
+import  askGPT  from "./api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -138,9 +138,8 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
     setPlaces([...places, myPlace]);
     
     setSearchResult({ lat, lng });
-    // console.log("calling openai");
-    // askGPT(myPlace);
   };
+
   function handlePlaceClick (): void {
     setSelectingPlace(true);
     toast.info("Click on map to add location", {onClose:() => setSelectingPlace(false)})
@@ -148,9 +147,7 @@ export default function Search({ setSearchResult, setPlaces, places, searchResul
 
   const [openExport, setOpenExport] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
-  const handleOpenExport = () => setOpenExport(true);
   const handleCloseExport = () => setOpenExport(false);
-  const handleOpenSettings = () => setOpenSettings(true);
   const handleCloseSettings = () => setOpenSettings(false);
 
   const style = {

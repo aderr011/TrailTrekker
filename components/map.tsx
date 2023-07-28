@@ -11,19 +11,22 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
-import Spots from "../api/spots";
+// import Spots from "../api/spots";
 import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "@/constants";
-import askGPT from "../api/spots";
-import { LargeNumberLike } from "crypto";
-import * as FaIcons from 'react-icons/fa';
+// import askGPT from "../api/spots";
 import { Squeeze as Hamburger } from 'hamburger-react'
 import AddIcon from '@mui/icons-material/Add';
 
+type LatLngLiteral = google.maps.LatLngLiteral;
+type DirectionsResult = google.maps.DirectionsResult;
+type MapOptions = google.maps.MapOptions;
+
+
 export default function GMap() {
-  const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
+  const [searchResult, setSearchResult] = useState<LatLngLiteral>();
+  const [directions, setDirections] = useState<DirectionsResult | undefined>(undefined);
   const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
-  const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
+  const [selectedLatLng, setSelectedLatLng] = useState<LatLngLiteral | undefined>(undefined);
   const usePlaces = (): [Place[], (list: Place[]) => void] => {
     const [list, setList] = useState<Place[]>([]);
   
@@ -33,7 +36,7 @@ export default function GMap() {
 
   // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
-  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral | undefined>();
+  const [searchTrailsLoc, setSearchTrailsLoc] = useState<LatLngLiteral | undefined>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng>();
@@ -50,8 +53,8 @@ export default function GMap() {
   const mapRef = useRef<google.maps.Map>();
 
   const zoom = useMemo<number>(() => (10),[]);
-  const center = useMemo<google.maps.LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
-  const options = useMemo<google.maps.MapOptions>(
+  const center = useMemo<LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
+  const options = useMemo<MapOptions>(
     () => ({
       mapId: "dc6c5f27dbeb3eae",
       disableDefaultUI: false,
@@ -243,40 +246,6 @@ export default function GMap() {
     fetchCampgrounds()
       .then((results) => setCampgrounds(results))
       .catch((err) => console.log(err));
-      
-    
-
-    // fetch('https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&f=geojson')
-    //   .then(response => response.json())
-    //   .then((data:any) => {
-    //     console.log("The response")
-    //     console.log(data)
-    //     // extract waypoints from GeoJSON data
-    //     const waypoints: Place[] = data.features.map((feature:any) => {
-    //       // console.log(feature.properties)
-    //       return{
-    //         name:feature.properties.SITE_NAME, 
-    //         lat:feature.geometry.coordinates[1], 
-    //         lng:feature.geometry.coordinates[0],
-    //       }
-    //     });
-    //     console.log(waypoints)
-    //     setCampsites(waypoints);
-
-    //     // // extract waypoints from GeoJSON data
-    //     // const waypoints: Place[] = data.features.map((feature:any) => {
-    //     //   console.log(feature.properties.latitude)
-    //     //   return{
-    //     //     name:feature.properties.title, 
-    //     //     lat:feature.properties.latitude, 
-    //     //     lng:feature.properties.longitude,
-    //     //   }
-    //     // });
-    //     // setCampsites(waypoints);
-    //   })
-    //   .catch(error => console.error('An error occurred:', error));
-
-    // setPlaces([...places, myPlace]);
   },[]);
 
   function handleDblClick (e: google.maps.MapMouseEvent): void {
@@ -413,24 +382,26 @@ export default function GMap() {
 
 
 
-            {trailResults && (
+            {/* {trailResults && (
               <Spots searchTrailsLoc={searchTrailsLoc} setTrailResults={setTrailResults} trailResults={trailResults}/>
-            )}
+            )} */}
 
 
             {(showDispersedCampsites && dispersedCampsites) && (
               <MarkerClusterer>
                 {clusterer =>
-                  dispersedCampsites.map((camp:DispersedCampsite, i:number) => (
-                    <Marker
-                      icon="/tent-icon.png"
-                      key={i}
-                      position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
-                      clusterer={clusterer}
-                      onClick={()=>handleCampsiteClick(i)}
-                    />
+                  <>
+                    {dispersedCampsites.map((camp:DispersedCampsite, i:number) => (
+                      <Marker
+                        icon="/tent-icon.png"
+                        key={i}
+                        position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
+                        clusterer={clusterer}
+                        onClick={()=>handleCampsiteClick(i)}
+                      />
 
-                  ))
+                    ))}
+                  </>
                 }
               </MarkerClusterer>
             )}
@@ -439,16 +410,17 @@ export default function GMap() {
             {(showCampgrounds && campgrounds) && (
               <MarkerClusterer>
                 {clusterer =>
-                  campgrounds.map((camp:Campground, i:number) => (
-                    <Marker
-                      icon="/tent-icon.png"
-                      key={i}
-                      position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
-                      clusterer={clusterer}
-                      onClick={()=>handleCampgroundClick(i)}
-                    />
-
-                  ))
+                  <>
+                    {campgrounds.map((camp:Campground, i:number) => (
+                        <Marker
+                          icon="/tent-icon.png"
+                          key={i}
+                          position={{ lat: camp.geometry.coordinates[1], lng: camp.geometry.coordinates[0] }}
+                          clusterer={clusterer}
+                          onClick={()=>handleCampgroundClick(i)}
+                        />
+                    ))}
+                  </>
                 }
               </MarkerClusterer>
             )}
