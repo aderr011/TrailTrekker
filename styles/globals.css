@@ -112,7 +112,7 @@ a {
   position: fixed;
   left: -100%;
   transition: 850ms;
-  z-index: 99999;
+  z-index: 1;
   width: 30%;
   padding: 1rem;
   background: #14161a;

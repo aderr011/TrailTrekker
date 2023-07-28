@@ -21,9 +21,13 @@ import usePlacesAutocomplete, {
     setSelectingPlace: (tf: boolean) => void;
     campgrounds: (Campground[] | undefined);
     setCampgrounds: (campgrounds: Campground[] | undefined) => void;
+    showCampgrounds: (boolean);
+    setShowCampgrounds: (fort: boolean) => void;
+    showDispersedCampsites: (boolean);
+    setShowDispersedCampsites: (fort: boolean) => void;
   };
   
-  export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections, campgrounds, setCampgrounds }: TripPlannerProps) {
+  export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections, campgrounds, setCampgrounds, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites }: TripPlannerProps) {
     const [routeData, setRouteData] = useState<google.maps.DirectionsLeg[] | undefined>();
 
     const {
@@ -48,6 +52,10 @@ import usePlacesAutocomplete, {
                 }}
                 setCampgrounds={setCampgrounds}
                 campgrounds={campgrounds}
+                showCampgrounds={showCampgrounds}
+                setShowCampgrounds={setShowCampgrounds}
+                showDispersedCampsites={showDispersedCampsites}
+                setShowDispersedCampsites={setShowDispersedCampsites}
         />
 
         {places && (

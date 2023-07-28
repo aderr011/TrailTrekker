@@ -44,22 +44,6 @@ export type DispersedCampsite = {
     
 }
 
-export type SitesStructureProperties = {
-    id: string;
-    name: string;
-    updated_date: string;
-    time_created: string;
-    notes: string;
-    cover_photo_id: string;
-}
-
-export type SitesStructure = {
-    type: string;
-    id: string;
-    properties: SitesStructureProperties;
-    features: Array<DispersedCampsite>;
-}
-
 export type CampsiteProperties = {
     id: string;
     updated_date: string;
@@ -83,3 +67,20 @@ export type CampsiteProperties = {
     marker_color: string;
     marker_decoration: string;
 }
+
+export type SitesStructureProperties = {
+    id: string;
+    name: string;
+    updated_date: string;
+    time_created: string;
+    notes: string;
+    cover_photo_id: string;
+}
+
+export type SitesStructure = {
+    type: string;
+    id: string;
+    properties: SitesStructureProperties;
+    features: Array<DispersedCampsite>;
+}
+
