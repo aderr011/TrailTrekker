@@ -1,5 +1,5 @@
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { Place } from "../constants";
+import { Place } from "../utils/constants";
 import {
 	List,
 	ListItem,

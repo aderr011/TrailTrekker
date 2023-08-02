@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import React from 'react';
 import { toast, ToastContainer, Id } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import {
   GoogleMap,
   Marker,
@@ -11,32 +10,25 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
-// import Spots from "../api/spots";
-import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "@/constants";
-// import askGPT from "../api/spots";
+import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "../utils/constants";
 import { Squeeze as Hamburger } from 'hamburger-react'
 import AddIcon from '@mui/icons-material/Add';
-
-type LatLngLiteral = google.maps.LatLngLiteral;
-type DirectionsResult = google.maps.DirectionsResult;
-type MapOptions = google.maps.MapOptions;
-
+// import Spots from "../api/spots";
+// import askGPT from "../api/spots";
 
 export default function GMap() {
-  const [searchResult, setSearchResult] = useState<LatLngLiteral>();
-  const [directions, setDirections] = useState<DirectionsResult | undefined>(undefined);
+  const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
   const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
-  const [selectedLatLng, setSelectedLatLng] = useState<LatLngLiteral | undefined>(undefined);
+  const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
   const usePlaces = (): [Place[], (list: Place[]) => void] => {
     const [list, setList] = useState<Place[]>([]);
   
     return [list, setList];
   };
   const [places, setPlaces] = usePlaces();
-
-  // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
-  const [searchTrailsLoc, setSearchTrailsLoc] = useState<LatLngLiteral | undefined>();
+  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral | undefined>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng>();
@@ -53,8 +45,8 @@ export default function GMap() {
   const mapRef = useRef<google.maps.Map>();
 
   const zoom = useMemo<number>(() => (10),[]);
-  const center = useMemo<LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
-  const options = useMemo<MapOptions>(
+  const center = useMemo<google.maps.LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
+  const options = useMemo<google.maps.MapOptions>(
     () => ({
       mapId: "dc6c5f27dbeb3eae",
       disableDefaultUI: false,

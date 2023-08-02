@@ -14,7 +14,7 @@ import { toast, ToastContainer, Id } from 'react-toastify';
 
 
 import "@reach/combobox/styles.css";
-import { Place, Campground } from "../constants";
+import { Place, Campground } from "../utils/constants";
 import { useState, useEffect } from "react";
 import  askGPT  from "./api/spots"
 import PlaceIcon from '@mui/icons-material/Place';
