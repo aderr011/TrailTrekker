@@ -1,3 +1,10 @@
+export type CampContextType = {
+    selectedCampground: Campground | undefined;
+    selectedCampsite: DispersedCampsite | undefined;
+    fetchDispersedCampsites: () => void;
+    fetchCampgrounds: () => void;
+}
+
 export type Place = {
     name: string;
     lat: number;
