@@ -1,11 +1,13 @@
 import { createContext } from "react";
 import {Campground, DispersedCampsite, CampContextType} from "../utils/constants"
 
-const CampContext: CampContextType = createContext({
+const CampContext = createContext<CampContextType>({
     selectedCampground: undefined,
+    selectCampground: (campground) => null,
     selectedCampsite: undefined,
-    fetchDispersedCampsites: () => null,
-    fetchCampgrounds: () => null,
+    selectCampsite: (campsite) => null,
+    fetchDispersedCampsites: () => Promise.resolve(undefined),
+    fetchCampgrounds: () => Promise.resolve(undefined),
 });
 
 export default CampContext;

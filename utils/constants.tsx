@@ -1,8 +1,10 @@
 export type CampContextType = {
     selectedCampground: Campground | undefined;
+    selectCampground: (campground: Campground | undefined) => void;
     selectedCampsite: DispersedCampsite | undefined;
-    fetchDispersedCampsites: () => void;
-    fetchCampgrounds: () => void;
+    selectCampsite: (campsite: DispersedCampsite | undefined) => void;
+    fetchDispersedCampsites: () => Promise<DispersedCampsite[]|undefined>;
+    fetchCampgrounds: () => Promise<Campground[]|undefined>;
 }
 
 export type Place = {
