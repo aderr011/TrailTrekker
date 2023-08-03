@@ -1,3 +1,12 @@
+export type CampContextType = {
+    selectedCampground: Campground | undefined;
+    selectCampground: (campground: Campground | undefined) => void;
+    selectedCampsite: DispersedCampsite | undefined;
+    selectCampsite: (campsite: DispersedCampsite | undefined) => void;
+    fetchDispersedCampsites: () => Promise<DispersedCampsite[]|undefined>;
+    fetchCampgrounds: () => Promise<Campground[]|undefined>;
+}
+
 export type Place = {
     name: string;
     lat: number;

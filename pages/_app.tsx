@@ -1,6 +1,8 @@
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import "../styles/globals.css";
+import CampProvider from '../contexts/CampProvider';
+
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -8,7 +10,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Head>
         <title>TrailTrekker</title>
       </Head>
-      <Component {...pageProps} />
+      <CampProvider>
+        <Component {...pageProps} />
+      </CampProvider>
     </>
   );
 }

@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import React from 'react';
 import { toast, ToastContainer, Id } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import {
   GoogleMap,
   Marker,
@@ -11,37 +10,36 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
-// import Spots from "../api/spots";
-import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "@/constants";
-// import askGPT from "../api/spots";
+import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "../utils/constants";
 import { Squeeze as Hamburger } from 'hamburger-react'
 import AddIcon from '@mui/icons-material/Add';
+// import Spots from "../api/spots";
+// import askGPT from "../api/spots";
 
-type LatLngLiteral = google.maps.LatLngLiteral;
-type DirectionsResult = google.maps.DirectionsResult;
-type MapOptions = google.maps.MapOptions;
-
+import useCamp from "../hooks/useCamp"
+import CampContext from "@/contexts/CampContext";
 
 export default function GMap() {
-  const [searchResult, setSearchResult] = useState<LatLngLiteral>();
-  const [directions, setDirections] = useState<DirectionsResult | undefined>(undefined);
+  const { selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
+
+
+  const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
   const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
-  const [selectedLatLng, setSelectedLatLng] = useState<LatLngLiteral | undefined>(undefined);
+  const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
   const usePlaces = (): [Place[], (list: Place[]) => void] => {
     const [list, setList] = useState<Place[]>([]);
   
     return [list, setList];
   };
   const [places, setPlaces] = usePlaces();
-
-  // const [directionsCalculated, setDirectionsCalculated] = useState<boolean>(false);
   const [trailResults, setTrailResults] = useState<Place[]>([]);
-  const [searchTrailsLoc, setSearchTrailsLoc] = useState<LatLngLiteral | undefined>();
+  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral | undefined>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng>();
-  const [selectedCampsite, setSelectedCampsite] = useState<DispersedCampsite | undefined>();
-  const [selectedCampground, setSelectedCampground] = useState<Campground | undefined>();
+  // const [selectedCampsite, setSelectedCampsite] = useState<DispersedCampsite | undefined>();
+  // const [selectedCampground, setSelectedCampground] = useState<Campground | undefined>();
   const [campgrounds, setCampgrounds] = useState<Campground[]>();
   const [dispersedCampsites, setDispersedCampsites] = useState<DispersedCampsite[]>();
   const [sidebar, setSidebar] = useState(false);
@@ -53,8 +51,8 @@ export default function GMap() {
   const mapRef = useRef<google.maps.Map>();
 
   const zoom = useMemo<number>(() => (10),[]);
-  const center = useMemo<LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
-  const options = useMemo<MapOptions>(
+  const center = useMemo<google.maps.LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
+  const options = useMemo<google.maps.MapOptions>(
     () => ({
       mapId: "dc6c5f27dbeb3eae",
       disableDefaultUI: false,
@@ -203,44 +201,45 @@ export default function GMap() {
     mapRef.current = map;
   }
 
-  const fetchCampgrounds = async () => {
-    const baseURL =
-      "https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&resultRecordCount=2000&f=geojson"
+  // const fetchCampgrounds = async () => {
+  //   const baseURL =
+  //     "https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&resultRecordCount=2000&f=geojson"
 
-    let resultOffset = 0;
-    let allResults: Campground[] = [];
-    let hasMore = true;
+  //   let resultOffset = 0;
+  //   let allResults: Campground[] = [];
+  //   let hasMore = true;
   
-    while (hasMore) {
-      const response = await fetch(`${baseURL}&resultOffset=${resultOffset.toString()}`);
-      // const response = await fetch(baseURL)
-      const data = await response.json();
+  //   while (hasMore) {
+  //     const response = await fetch(`${baseURL}&resultOffset=${resultOffset.toString()}`);
+  //     // const response = await fetch(baseURL)
+  //     const data = await response.json();
   
-      allResults = [...allResults, ...data.features];
+  //     allResults = [...allResults, ...data.features];
   
-      // If 'exceededTransferLimit' is true, there are more records to fetch
-      hasMore = (data.properties) ? data.properties.exceededTransferLimit : false
+  //     // If 'exceededTransferLimit' is true, there are more records to fetch
+  //     hasMore = (data.properties) ? data.properties.exceededTransferLimit : false
       
-      if (hasMore) {
-        resultOffset += 2000; // Increment resultOffset by resultRecordCount to fetch the next batch
-      }
-    }
-    return allResults;
-  };
+  //     if (hasMore) {
+  //       resultOffset += 2000; // Increment resultOffset by resultRecordCount to fetch the next batch
+  //     }
+  //   }
+  //   return allResults;
+  // };
 
-  const fetchDispersedCampsites = async() => {
-    const response = await fetch("/dispersed_campsites.geojson");
+  // const fetchDispersedCampsites = async() => {
+  //   const response = await fetch("/dispersed_campsites.geojson");
 
-    const data = await response.json();
+  //   const data = await response.json();
 
-    return data.features
-  }
+  //   return data.features
+  // }
 
   const onLoad = useCallback((map) => {
     mapRef.current = map;
 
     fetchDispersedCampsites()
-      .then((results) => setDispersedCampsites(results))
+      .then((results) => {
+        setDispersedCampsites(results)})
       .catch((err) => console.log(err));
 
     fetchCampgrounds()
@@ -287,7 +286,7 @@ export default function GMap() {
     let myPlace: Place;
     if (selectedCampground) {
       toast.info("Added campground to trip!", {autoClose:1500})
-      setSelectedCampground(undefined)
+      selectCampground(undefined)
       const lat: number = selectedCampground.geometry.coordinates[1];
       const lng: number = selectedCampground.geometry.coordinates[0];
       if (selectedCampground.properties.SITE_NAME)
@@ -301,14 +300,14 @@ export default function GMap() {
 
   function handleCampgroundClick(index: number) {
     if (!campgrounds) return;
-    setSelectedCampground(campgrounds[index])
+    selectCampground(campgrounds[index])
   }
 
   function handleCampsiteSelect() {
     let myPlace: Place;
     if (selectedCampsite) {
       toast.info("Added campsite to trip!", {autoClose:1500})
-      setSelectedCampsite(undefined);
+      selectCampsite(undefined);
       const lat: number = selectedCampsite.geometry.coordinates[1];
       const lng: number = selectedCampsite.geometry.coordinates[0];
       myPlace = {name: lat+", "+lng, lat:lat, lng:lng}
@@ -319,7 +318,7 @@ export default function GMap() {
 
   function handleCampsiteClick(index: number) {
     if (!dispersedCampsites) return;
-    setSelectedCampsite(dispersedCampsites[index])
+    selectCampsite(dispersedCampsites[index])
   }
   
 
@@ -430,7 +429,7 @@ export default function GMap() {
               <InfoWindow
                 position={{lat: selectedCampground.geometry.coordinates[1], lng: selectedCampground.geometry.coordinates[0]}}
                 onCloseClick={() => {
-                  setSelectedCampground(undefined);
+                  selectCampground(undefined);
                 }}
               >
                 <div>
@@ -450,7 +449,7 @@ export default function GMap() {
               <InfoWindow
                 position={{lat: selectedCampsite.geometry.coordinates[1], lng: selectedCampsite.geometry.coordinates[0]}}
                 onCloseClick={() => {
-                  setSelectedCampsite(undefined);
+                  selectCampsite(undefined);
                 }}
               >
                 <div>
