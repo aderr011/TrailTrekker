@@ -1,20 +1,25 @@
 import React, { ReactNode, useMemo, useState } from "react";
 
 import CampContext from "./CampContext";
-import {Campground, DispersedCampsite} from "../utils/constants"
+import {Campground, DispersedCampsite} from "../../utils/types"
 
 const CampProvider = ({ children } : {children: ReactNode}) => {
+    const [campgrounds, setCampgrounds] = useState<Campground[]>();
+
+    const [dispersedCampsites, setDispersedCampsites] = useState<DispersedCampsite[]>();
+
+    const [showDispersedCampsites, setShowDispersedCampsites] = useState<boolean>(true);
+
+    const [showCampgrounds, setShowCampgrounds] = useState<boolean>(true);
+
     const [selectedCampground, setSelectedCampground] = useState<Campground | undefined>();
-    
     const selectCampground = ((campground: Campground | undefined) => setSelectedCampground(campground));
 
     const [selectedCampsite, setSelectedCampsite] = useState<DispersedCampsite | undefined>();
-
     const selectCampsite = ((campsite: DispersedCampsite | undefined) => setSelectedCampsite(campsite));
 
     const fetchDispersedCampsites = async() => {
         const response = await fetch("/dispersed_campsites.geojson");
-
         const data = await response.json();
         return data.features
     }
@@ -48,6 +53,14 @@ const CampProvider = ({ children } : {children: ReactNode}) => {
     return (
         <CampContext.Provider
             value={{
+                campgrounds,
+                setCampgrounds,
+                dispersedCampsites,
+                setDispersedCampsites,
+                showDispersedCampsites,
+                setShowDispersedCampsites,
+                showCampgrounds,
+                setShowCampgrounds,
                 selectedCampground,
                 selectCampground,
                 selectedCampsite,

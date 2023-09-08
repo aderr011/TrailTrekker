@@ -1,10 +1,30 @@
 export type CampContextType = {
+    campgrounds: Campground[] | undefined;
+    setCampgrounds: (campgrounds: Campground[] | undefined) => void;
+    dispersedCampsites: DispersedCampsite[] | undefined;
+    setDispersedCampsites: (campsites: DispersedCampsite[] | undefined) => void;
+    showDispersedCampsites: boolean | undefined;
+    setShowDispersedCampsites: (show: boolean) => void;
+    showCampgrounds: boolean | undefined;
+    setShowCampgrounds: (show: boolean) => void;
     selectedCampground: Campground | undefined;
     selectCampground: (campground: Campground | undefined) => void;
     selectedCampsite: DispersedCampsite | undefined;
     selectCampsite: (campsite: DispersedCampsite | undefined) => void;
     fetchDispersedCampsites: () => Promise<DispersedCampsite[]|undefined>;
     fetchCampgrounds: () => Promise<Campground[]|undefined>;
+}
+
+export type PlacesContextType = {
+    places: Place[];
+    setPlaces: (places: Place[]) => void;
+    selectingPlace: boolean | undefined;
+    setSelectingPlace: (bool: boolean) => void;
+}
+
+export type DirectionsContextType = {
+    directions: google.maps.DirectionsResult | undefined;
+    setDirections: (directions: google.maps.DirectionsResult | undefined) => void;
 }
 
 export type Place = {

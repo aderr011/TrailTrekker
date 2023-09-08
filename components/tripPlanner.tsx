@@ -4,7 +4,7 @@ import usePlacesAutocomplete from "use-places-autocomplete";
   import "@reach/combobox/styles.css";
   import Search from "./Search";
   import Itinerary from "./itinerary";
-  import { Place, Campground } from "../utils/constants";
+  import { Place, Campground } from "../utils/types";
   
   type TripPlannerProps = {
     setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;

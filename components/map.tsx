@@ -10,46 +10,40 @@ import {
   MarkerClusterer,
 } from "@react-google-maps/api";
 import TripPlanner from "./tripPlanner";
-import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "../utils/constants";
+import { Place, Campground, DispersedCampsite, SitesStructure, TrailInfo } from "../utils/types";
 import { Squeeze as Hamburger } from 'hamburger-react'
 import AddIcon from '@mui/icons-material/Add';
 // import Spots from "../api/spots";
 // import askGPT from "../api/spots";
 
 import useCamp from "../hooks/useCamp"
-import CampContext from "@/contexts/CampContext";
+import useDirections from "@/hooks/useDirections";
+import usePlaces from "@/hooks/usePlaces";
 
 export default function GMap() {
-  const { selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
-
+  const { campgrounds, setCampgrounds, dispersedCampsites, setDispersedCampsites, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites, selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
+  const { places, setPlaces, selectingPlace, setSelectingPlace } = usePlaces()
+  const {directions, setDirections} = useDirections()
 
   const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
-  const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
-  const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
-  const usePlaces = (): [Place[], (list: Place[]) => void] => {
-    const [list, setList] = useState<Place[]>([]);
+  // const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
+  // const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
+  // const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
+  // const usePlaces = (): [Place[], (list: Place[]) => void] => {
+  //   const [list, setList] = useState<Place[]>([]);
   
-    return [list, setList];
-  };
-  const [places, setPlaces] = usePlaces();
-  const [trailResults, setTrailResults] = useState<Place[]>([]);
-  const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral | undefined>();
+  //   return [list, setList];
+  // };
+  // const [places, setPlaces] = usePlaces();
+  // const [trailResults, setTrailResults] = useState<Place[]>([]);
+  // const [searchTrailsLoc, setSearchTrailsLoc] = useState<google.maps.LatLngLiteral | undefined>();
   const [searchedBounds, setSearchedBounds] = useState<google.maps.LatLngBounds[]>([]);
   const [selectedTrail, setSelectedTrail] = useState<TrailInfo | undefined>();
   const [selectedTrailLoc, setSelectedTrailLoc] = useState<google.maps.LatLng>();
-  // const [selectedCampsite, setSelectedCampsite] = useState<DispersedCampsite | undefined>();
-  // const [selectedCampground, setSelectedCampground] = useState<Campground | undefined>();
-  const [campgrounds, setCampgrounds] = useState<Campground[]>();
-  const [dispersedCampsites, setDispersedCampsites] = useState<DispersedCampsite[]>();
   const [sidebar, setSidebar] = useState(false);
-  const [showDispersedCampsites, setShowDispersedCampsites] = useState<boolean>(true);
-  const [showCampgrounds, setShowCampgrounds] = useState<boolean>(true);
   const toastId = React.useRef<Id | undefined>(undefined);
 
-
   const mapRef = useRef<google.maps.Map>();
-
   const zoom = useMemo<number>(() => (10),[]);
   const center = useMemo<google.maps.LatLngLiteral>(() => ({ lat: 40.57418050950612, lng:-105.083399099530334 }),[]);
   const options = useMemo<google.maps.MapOptions>(
@@ -108,8 +102,8 @@ export default function GMap() {
       //Add current bounds to searchedBounds array
       setSearchedBounds([...searchedBounds, mapBounds]);
 
-      // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
-      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_RoadBasic_01/MapServer/0/query?where=1%3D1&outFields=NAME,SEG_LENGTH,SYSTEM,ROUTE_STATUS,OPER_MAINT_LEVEL,SURFACE_TYPE,LANES,COUNTY,GIS_MILES,IVM_SYMBOL,SYMBOL_NAME,ID&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
+      // const queryString = `https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_MVUM_01/MapServer/1/query?where=1%3D1&outFields=NAME,GIS_MILES,JURISDICTION,OPERATIONALMAINTLEVEL,PASSENGERVEHICLE,PASSENGERVEHICLE_DATESOPEN,SECURITYID,SBS_SYMBOL_NAME,FORESTNAME,MOTORHOME,ATV,BUS,MOTORCYCLE,OTHER_OHV_LT50INCHES&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       // const campgrounds = `https://services.arcgis.com/4OV0eRKiLAYkbH2J/arcgis/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/query?where=1%3D1&geometry=${west}%2C${south}%2C${east}%2C${north}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=geojson`
       geoJsonLayer.loadGeoJson(queryString)
       // geoJsonLayer.loadGeoJson("https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=SITE_NAME&&f=geojson")
@@ -238,8 +232,7 @@ export default function GMap() {
     mapRef.current = map;
 
     fetchDispersedCampsites()
-      .then((results) => {
-        setDispersedCampsites(results)})
+      .then((results) => setDispersedCampsites(results))
       .catch((err) => console.log(err));
 
     fetchCampgrounds()
@@ -249,7 +242,7 @@ export default function GMap() {
 
   function handleDblClick (e: google.maps.MapMouseEvent): void {
     if (!e.latLng) return;
-    setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
+    // setSearchTrailsLoc({lat:e.latLng.lat(), lng:e.latLng.lng()});
   }
   
 

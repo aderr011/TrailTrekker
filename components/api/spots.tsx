@@ -1,5 +1,5 @@
 import { ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "openai";
-import { Place } from "../../utils/constants";
+import { Place } from "../../utils/types";
 import {useEffect} from "react";
 import {
   Marker,

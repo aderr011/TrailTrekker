@@ -1,7 +1,7 @@
 import { useContext } from "react";
 
-import CampContext from "../contexts/CampContext";
+import CampContext from "../contexts/camp/CampContext";
 
-const useAccount = () => useContext(CampContext);
+const useCamp = () => useContext(CampContext);
 
-export default useAccount;
+export default useCamp;
