@@ -22,25 +22,21 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import TextField from '@mui/material/TextField';
 import TuneIcon from '@mui/icons-material/Tune';
-
+import usePlaces from "@/hooks/usePlaces";
+import useDirections from "@/hooks/useDirections";
+import useSearch from "@/hooks/useSearch";
+import useCamp from "@/hooks/useCamp";
 
 type SearchProps = {
-  setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-  setPlaces : (list: Place[]) => void;
-  places : (Place[]);
-  searchResult: (google.maps.LatLngLiteral | undefined);
-  setDirections: (result: google.maps.DirectionsResult | undefined) => void;
   setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;
-  setSelectingPlace: (tf: boolean) => void;
-  campgrounds: (Campground[] | undefined);
-  setCampgrounds: (campgrounds: Campground[] | undefined) => void;
-  showCampgrounds: (boolean);
-  setShowCampgrounds: (fort: boolean) => void;
-  showDispersedCampsites: (boolean);
-  setShowDispersedCampsites: (fort: boolean) => void;
 };
 
-export default function Search({ setSearchResult, setPlaces, places, searchResult, setDirections, setSelectingPlace, setRouteData, campgrounds, setCampgrounds, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites }: SearchProps) {
+export default function Search({ setRouteData }: SearchProps) {
+  const { campgrounds, setCampgrounds, dispersedCampsites, setDispersedCampsites, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites, selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
+  const { places, setPlaces, setSelectingPlace } = usePlaces()
+  const { directions, setDirections } = useDirections()
+  const { searchResult, setSearchResult } = useSearch()
+  
   var myPlace : Place;
   const {
     ready,

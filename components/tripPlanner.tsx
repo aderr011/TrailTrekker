@@ -5,24 +5,19 @@ import usePlacesAutocomplete from "use-places-autocomplete";
   import Search from "./Search";
   import Itinerary from "./itinerary";
   import { Place, Campground } from "../utils/types";
+
+import usePlaces from "@/hooks/usePlaces";
+import useDirections from "@/hooks/useDirections";
+import useSearch from "@/hooks/useSearch";
+import useCamp from "@/hooks/useCamp";
   
-  type TripPlannerProps = {
-    setSearchResult: (position: google.maps.LatLngLiteral | undefined) => void;
-    searchResult: (google.maps.LatLngLiteral | undefined);
-    directions: (google.maps.DirectionsResult | undefined);
-    setDirections: (result: google.maps.DirectionsResult | undefined) => void;
-    places: (Place[]);
-    setPlaces : (list: Place[]) => void;
-    setSelectingPlace: (tf: boolean) => void;
-    campgrounds: (Campground[] | undefined);
-    setCampgrounds: (campgrounds: Campground[] | undefined) => void;
-    showCampgrounds: (boolean);
-    setShowCampgrounds: (fort: boolean) => void;
-    showDispersedCampsites: (boolean);
-    setShowDispersedCampsites: (fort: boolean) => void;
-  };
   
-  export default function TripPlanner({ setSearchResult, searchResult, directions, places, setPlaces, setSelectingPlace, setDirections, campgrounds, setCampgrounds, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites }: TripPlannerProps) {
+  export default function TripPlanner() {
+    const { campgrounds, setCampgrounds, dispersedCampsites, setDispersedCampsites, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites, selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
+    const { places, setPlaces, setSelectingPlace } = usePlaces()
+    const { directions, setDirections } = useDirections()
+    const { searchResult, setSearchResult } = useSearch()
+    
     const [routeData, setRouteData] = useState<google.maps.DirectionsLeg[] | undefined>();
 
     const {
@@ -36,22 +31,7 @@ import usePlacesAutocomplete from "use-places-autocomplete";
     return (
       <div>
         <h1 className="planner-text">Trip Planner</h1>
-        <Search setSearchResult={setSearchResult} 
-                places={places} 
-                setPlaces={setPlaces} 
-                searchResult={searchResult} 
-                setSelectingPlace={setSelectingPlace}
-                setDirections={setDirections}
-                setRouteData={(data) => {
-                  setRouteData(data)         
-                }}
-                setCampgrounds={setCampgrounds}
-                campgrounds={campgrounds}
-                showCampgrounds={showCampgrounds}
-                setShowCampgrounds={setShowCampgrounds}
-                showDispersedCampsites={showDispersedCampsites}
-                setShowDispersedCampsites={setShowDispersedCampsites}
-        />
+        <Search setRouteData={setRouteData}/>
 
         {places && (
           <Itinerary routeData={routeData}

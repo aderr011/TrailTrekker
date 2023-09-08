@@ -197,39 +197,6 @@ export default function GMap() {
     mapRef.current = map;
   }
 
-  // const fetchCampgrounds = async () => {
-  //   const baseURL =
-  //     "https://services.arcgis.com/4OV0eRKiLAYkbH2J/ArcGIS/rest/services/Campgrounds_(BLM_and_USFS)/FeatureServer/0/query?where=1%3D1&outFields=FID,SITE_NAME,TYPE,QUANTITY,AGENCY&resultRecordCount=2000&f=geojson"
-
-  //   let resultOffset = 0;
-  //   let allResults: Campground[] = [];
-  //   let hasMore = true;
-  
-  //   while (hasMore) {
-  //     const response = await fetch(`${baseURL}&resultOffset=${resultOffset.toString()}`);
-  //     // const response = await fetch(baseURL)
-  //     const data = await response.json();
-  
-  //     allResults = [...allResults, ...data.features];
-  
-  //     // If 'exceededTransferLimit' is true, there are more records to fetch
-  //     hasMore = (data.properties) ? data.properties.exceededTransferLimit : false
-      
-  //     if (hasMore) {
-  //       resultOffset += 2000; // Increment resultOffset by resultRecordCount to fetch the next batch
-  //     }
-  //   }
-  //   return allResults;
-  // };
-
-  // const fetchDispersedCampsites = async() => {
-  //   const response = await fetch("/dispersed_campsites.geojson");
-
-  //   const data = await response.json();
-
-  //   return data.features
-  // }
-
   const onLoad = useCallback((map) => {
     mapRef.current = map;
 
@@ -326,9 +293,7 @@ export default function GMap() {
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
-        <TripPlanner searchResult={searchResult} setSearchResult={(position) => {
-              setSearchResult(position);         
-            }}/>
+        <TripPlanner/>
         </div>
         <GoogleMap
             zoom={zoom}
