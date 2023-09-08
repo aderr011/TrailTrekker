@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo, useState } from "react";
 
 import PlacesContext from "./PlacesContext";
-import { Place } from "../../utils/types"
+import { Place } from "../../../utils/types"
 
 const PlacesProvider = ({ children } : {children: ReactNode}) => {
     const [places, setPlaces] = useState<Place[]>([]);

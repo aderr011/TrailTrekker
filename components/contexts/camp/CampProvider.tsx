@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo, useState } from "react";
 
 import CampContext from "./CampContext";
-import {Campground, DispersedCampsite} from "../../utils/types"
+import {Campground, DispersedCampsite} from "../../../utils/types"
 
 const CampProvider = ({ children } : {children: ReactNode}) => {
     const [campgrounds, setCampgrounds] = useState<Campground[]>();

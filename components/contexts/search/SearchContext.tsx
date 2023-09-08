@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { SearchContextType } from "../../utils/types"
+import { SearchContextType } from "../../../utils/types"
 
 const SearchContext = createContext<SearchContextType>({
     searchResult: undefined,

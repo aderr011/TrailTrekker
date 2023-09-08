@@ -6,10 +6,10 @@ import usePlacesAutocomplete from "use-places-autocomplete";
   import Itinerary from "./itinerary";
   import { Place, Campground } from "../utils/types";
 
-import usePlaces from "@/hooks/usePlaces";
-import useDirections from "@/hooks/useDirections";
-import useSearch from "@/hooks/useSearch";
-import useCamp from "@/hooks/useCamp";
+import usePlaces from "@/components/hooks/usePlaces";
+import useDirections from "@/components/hooks/useDirections";
+import useSearch from "@/components/hooks/useSearch";
+import useCamp from "@/components/hooks/useCamp";
   
   
   export default function TripPlanner() {

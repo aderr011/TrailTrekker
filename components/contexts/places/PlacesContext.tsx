@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { PlacesContextType } from "../../utils/types"
+import { PlacesContextType } from "../../../utils/types"
 
 const PlacesContext = createContext<PlacesContextType>({
     places: [],

@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import {Campground, DispersedCampsite, CampContextType} from "../../utils/types"
+import {Campground, DispersedCampsite, CampContextType} from "../../../utils/types"
 
 const CampContext = createContext<CampContextType>({
     campgrounds: undefined,
