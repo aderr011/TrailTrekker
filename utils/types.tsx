@@ -27,6 +27,11 @@ export type DirectionsContextType = {
     setDirections: (directions: google.maps.DirectionsResult | undefined) => void;
 }
 
+export type SearchContextType = {
+    searchResult: google.maps.LatLngLiteral | undefined;
+    setSearchResult: (result: google.maps.LatLngLiteral | undefined) => void;
+}
+
 export type Place = {
     name: string;
     lat: number;

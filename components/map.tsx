@@ -19,13 +19,15 @@ import AddIcon from '@mui/icons-material/Add';
 import useCamp from "../hooks/useCamp"
 import useDirections from "@/hooks/useDirections";
 import usePlaces from "@/hooks/usePlaces";
+import useSearch from "@/hooks/useSearch";
 
 export default function GMap() {
   const { campgrounds, setCampgrounds, dispersedCampsites, setDispersedCampsites, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites, selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
   const { places, setPlaces, selectingPlace, setSelectingPlace } = usePlaces()
-  const {directions, setDirections} = useDirections()
-
-  const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
+  const { directions, setDirections } = useDirections()
+  const { searchResult, setSearchResult } = useSearch()
+ 
+  // const [searchResult, setSearchResult] = useState<google.maps.LatLngLiteral>();
   // const [directions, setDirections] = useState<google.maps.DirectionsResult | undefined>(undefined);
   // const [selectingPlace, setSelectingPlace] = useState<boolean>(false);
   // const [selectedLatLng, setSelectedLatLng] = useState<google.maps.LatLngLiteral | undefined>(undefined);
@@ -324,7 +326,7 @@ export default function GMap() {
       
       <div id="map">
         <div className={sidebar ? 'nav-menu active' : 'nav-menu'}>
-        <TripPlanner places={places} setShowDispersedCampsites={setShowDispersedCampsites} setShowCampgrounds={setShowCampgrounds} showDispersedCampsites={showDispersedCampsites} showCampgrounds={showCampgrounds} setSelectingPlace={setSelectingPlace} setPlaces={setPlaces} directions={directions} setDirections={setDirections} searchResult={searchResult} campgrounds={campgrounds} setCampgrounds={setCampgrounds} setSearchResult={(position) => {
+        <TripPlanner searchResult={searchResult} setSearchResult={(position) => {
               setSearchResult(position);         
             }}/>
         </div>
