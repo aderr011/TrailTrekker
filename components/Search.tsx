@@ -22,10 +22,10 @@ import IosShareIcon from '@mui/icons-material/IosShare';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import TextField from '@mui/material/TextField';
 import TuneIcon from '@mui/icons-material/Tune';
-import usePlaces from "@/components/hooks/usePlaces";
-import useDirections from "@/components/hooks/useDirections";
-import useSearch from "@/components/hooks/useSearch";
-import useCamp from "@/components/hooks/useCamp";
+import usePlaces from "./hooks/usePlaces";
+import useDirections from "./hooks/useDirections";
+import useSearch from "./hooks/useSearch";
+import useCamp from "./hooks/useCamp";
 
 type SearchProps = {
   setRouteData: (data: google.maps.DirectionsLeg[] | undefined) => void;

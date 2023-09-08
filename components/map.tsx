@@ -17,9 +17,9 @@ import AddIcon from '@mui/icons-material/Add';
 // import askGPT from "../api/spots";
 
 import useCamp from "./hooks/useCamp"
-import useDirections from "@/components/hooks/useDirections";
-import usePlaces from "@/components/hooks/usePlaces";
-import useSearch from "@/components/hooks/useSearch";
+import useDirections from "./hooks/useDirections";
+import usePlaces from "./hooks/usePlaces";
+import useSearch from "./hooks/useSearch";
 
 export default function GMap() {
   const { campgrounds, setCampgrounds, dispersedCampsites, setDispersedCampsites, showCampgrounds, setShowCampgrounds, showDispersedCampsites, setShowDispersedCampsites, selectedCampground, selectCampground, selectedCampsite, selectCampsite, fetchDispersedCampsites, fetchCampgrounds } = useCamp();
